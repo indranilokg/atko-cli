@@ -1,6 +1,8 @@
 import click
 import os
+import sys
 import json
+import configparser
 
 plugin_folder = os.path.join(os.path.dirname(__file__), 'commands')
 
@@ -20,35 +22,87 @@ class OktaCLI(click.MultiCommand):
     def get_command(self, ctx, name):
         ns = {}
         fn = os.path.join(plugin_folder, name + '.py')
-        with open(fn) as f:
-            code = compile(f.read(), fn, 'exec')
-            eval(code, ns, ns)
-        return ns['cli']
+        try:
+            with open(fn) as f:
+                code = compile(f.read(), fn, 'exec')
+                eval(code, ns, ns)
+        except Exception:
+            pass
+        else:
+            return ns['cli']
+
+    def __call__(self, *args, **kwargs):
+        try:
+            return super(OktaCLI, self).__call__(
+                *args, standalone_mode=False, **kwargs)
+        except click.exceptions.UsageError as ex:
+            ex.ctx = None
+            click.echo(f"Error: {ex.message}")
+            click.echo()
+            try:
+                super(OktaCLI, self).__call__(['--help'])
+            except SystemExit:
+                sys.exit(ex.exit_code)
+        except click.exceptions.ClickException as ex:
+            ex.ctx = None
+            click.echo(f"Error: {ex.message}")
+            click.echo()
+            sys.exit(111)
+        except Exception as ex:
+            ex.ctx = None
+            ex.exit_code = 111
+            click.echo(f"{ex.__class__}:{ex}")
+            click.echo()
+            sys.exit(112)
+            # raise
 
 
 @click.command(cls=OktaCLI, context_settings=CONTEXT_SETTINGS)
-@click.option(
-    '--config-file', '-c',
-    type=click.Path(),
-    default='~/.okt.cfg',
-)
 @click.pass_context
-def cli(ctx, config_file):
+def cli(ctx):
     """CLI tool for your Okta org."""
-    filename = os.path.expanduser(config_file)
 
-    if os.path.exists(filename):
-        with open(filename) as cfg:
-            config = json.loads(cfg.read())
-        ctx.obj = {
-            'base_url': config['base_url'],
-            'api_token': config['api_token'],
-            'config_file': filename
-        }
+    configDir = os.path.expanduser("~/.okt")
+    configfile = os.path.expanduser(configDir + "/config")
+    credsfile = os.path.expanduser(configDir + "/credentials")
+    cahcefile = os.path.expanduser(configDir + "/cache")
+
+    if(not os.path.isdir(configDir)):
+        click.echo(f"{configDir} does not exist")
+        try:
+            os.mkdir(os.path.expanduser(configDir))
+        except OSError:
+            click.echo(f"Creation of the directory {configDir} failed")
+            raise
+        else:
+            click.echo(f"Successfully created the directory {configDir}")
+
+    config = configparser.ConfigParser()
+    creds = configparser.ConfigParser()
+
+    if os.path.exists(configfile):
+        config.read(configfile)
     else:
-        ctx.obj = {
-            'config_file': filename
-        }
+        with open(configfile, 'w'):
+            config.write(configfile)
+
+    if os.path.exists(credsfile):
+        creds.read(credsfile)
+    else:
+        with open(credsfile, 'w'):
+            creds.write(credsfile)
+
+    if not os.path.exists(cahcefile):
+        with open(cahcefile, 'w') as out:
+            json.dump({}, out)
+
+    ctx.obj = {
+        'config': config,
+        'creds': creds,
+        'config_file': configfile,
+        'creds_file': credsfile,
+        'cache_file': cahcefile
+    }
 
 
 if __name__ == '__main__':

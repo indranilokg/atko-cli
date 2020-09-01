@@ -10,6 +10,7 @@ VERSION = "0.0.3"
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
     description = 'verify that the git tag matches our version'
@@ -22,6 +23,7 @@ class VerifyVersionCommand(install):
                 tag, VERSION
             )
             sys.exit(info)
+
 
 setup(
     name="okt",
