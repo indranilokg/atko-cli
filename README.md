@@ -2,7 +2,7 @@
 
 # Atko CLI (reverse Okta CLI)
 
-`akto` is [Bizarro World](https://en.wikipedia.org/wiki/Bizarro) version of [Okta CLI](https://github.com/oktadeveloper/okta-cli). It is a completely different approach to manage Okta resources using different technology stack(***Python***). The primarily goal of Akto CLI is automate actions like create, update and delete resources that would require many clicks in the Okta UI. :tada:
+`atko` is [Bizarro World](https://en.wikipedia.org/wiki/Bizarro) version of [Okta CLI](https://github.com/oktadeveloper/okta-cli). It is a completely different approach to manage Okta resources using different technology stack(***Python***). The primarily goal of Atko CLI is automate actions like create, update and delete resources that would require many clicks in the Okta UI. :tada:
 
 Supported resources:
 
@@ -17,8 +17,8 @@ We are in pre-alpha stage, meaning there is still a lot features left to impleme
 ## Usage
 
 ```bash
-$ akto --help
-Usage: akto [OPTIONS] COMMAND [ARGS]...
+$ atko --help
+Usage: atko [OPTIONS] COMMAND [ARGS]...
 
   CLI tool for your Okta org.
 
@@ -31,7 +31,7 @@ Commands:
 
 ## Documentation
 
-Read the [official docs](https://okt-cli.github.com/manual/) for more information. (Not Implemented)
+Read the [official docs](https://atko-cli.github.com/manual/) for more information. (Not Implemented)
 
 
 <!-- this anchor is linked to from elsewhere, so avoid renaming it -->
