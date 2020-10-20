@@ -9,7 +9,7 @@ plugin_folder = os.path.join(os.path.dirname(__file__), 'commands')
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
-class OktaCLI(click.MultiCommand):
+class AtkoCLI(click.MultiCommand):
 
     def list_commands(self, ctx):
         rv = []
@@ -27,21 +27,20 @@ class OktaCLI(click.MultiCommand):
                 code = compile(f.read(), fn, 'exec')
                 eval(code, ns, ns)
         except Exception as e:
-            print(e)
-            pass
+            raise RuntimeError(e)
         else:
             return ns['cli']
 
     def __call__(self, *args, **kwargs):
         try:
-            return super(OktaCLI, self).__call__(
+            return super(AtkoCLI, self).__call__(
                 *args, standalone_mode=False, **kwargs)
         except click.exceptions.UsageError as ex:
             ex.ctx = None
             click.echo(f"Error: {ex.message}")
             click.echo()
             try:
-                super(OktaCLI, self).__call__(['--help'])
+                super(AtkoCLI, self).__call__(['--help'])
             except SystemExit:
                 sys.exit(ex.exit_code)
         except click.exceptions.ClickException as ex:
@@ -58,15 +57,15 @@ class OktaCLI(click.MultiCommand):
             # raise
 
 
-@click.command(cls=OktaCLI, context_settings=CONTEXT_SETTINGS)
+@click.command(cls=AtkoCLI, context_settings=CONTEXT_SETTINGS)
 @click.pass_context
 def cli(ctx):
     """CLI tool for your Okta org."""
 
-    configDir = os.path.expanduser("~/.okt")
+    configDir = os.path.expanduser("~/.atkocli")
     configfile = os.path.expanduser(configDir + "/config")
     credsfile = os.path.expanduser(configDir + "/credentials")
-    cahcefile = os.path.expanduser(configDir + "/cache")
+    cachefile = os.path.expanduser(configDir + "/cache")
 
     if(not os.path.isdir(configDir)):
         click.echo(f"{configDir} does not exist")
@@ -93,8 +92,8 @@ def cli(ctx):
         with open(credsfile, 'w'):
             creds.write(credsfile)
 
-    if not os.path.exists(cahcefile):
-        with open(cahcefile, 'w') as out:
+    if not os.path.exists(cachefile):
+        with open(cachefile, 'w') as out:
             json.dump({}, out)
 
     ctx.obj = {
@@ -102,7 +101,7 @@ def cli(ctx):
         'creds': creds,
         'config_file': configfile,
         'creds_file': credsfile,
-        'cache_file': cahcefile
+        'cache_file': cachefile
     }
 
 
