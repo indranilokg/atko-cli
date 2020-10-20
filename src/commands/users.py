@@ -10,7 +10,7 @@ import oktapy.manage.UserMgr as UserMgr
 from oktapy.utils import readCSV
 
 
-def _multiple_user_from_prompt():
+def _multiple_user_from_prompt(password=None, password_import=False, password_required=True):
     count = click.prompt(
         "Enter number of users",
         default=5
@@ -26,30 +26,36 @@ def _multiple_user_from_prompt():
         default="testrun_"
     )
 
-    password = click.prompt(
-        "Default password",
-        hide_input=True
-    )
+    if password_required:
+        password = click.prompt(
+            "Default password",
+            hide_input=True
+        ) if password is None else password
 
     user_payload = []
     for i in range(count):
         formatted_login = prefix + "user" + str(i + 1) + "@" + domain
-        data = {
-            "profile": {
-                "firstName": prefix + "user" + str(i + 1),
-                "lastName": "oktgen",
-                "email": formatted_login,
-                "login": formatted_login
-            },
-            "credentials": {
+        data = {}
+        data["profile"] = {
+            "firstName": prefix + "user" + str(i + 1),
+            "lastName": "oktgen",
+            "email": formatted_login,
+            "login": formatted_login
+        }
+        if password_required:
+            data["credentials"] = {
                 "password": {"value": password},
             }
-        }
+        elif password_import:
+            data["credentials"] = {
+                "password": {"hook": {"type": "default"}},
+            }
+
         user_payload.append(data)
     return user_payload
 
 
-def _single_user_from_prompt():
+def _single_user_from_prompt(password=None, password_import=False, password_required=True):
     user_login = click.prompt(
         "Login",
         default="testuser@example.com"
@@ -68,22 +74,34 @@ def _single_user_from_prompt():
         "Last Name"
     )
 
-    user_password = click.prompt(
-        "Password",
-        hide_input=True
-    )
+    if password_required:
+        user_password = click.prompt(
+            "Password",
+            hide_input=True
+        ) if password is None else password
 
-    user_payload = [{
-        "profile": {
-            "firstName": user_firstname,
-            "lastName": user_lastname,
-            "email": user_email,
-            "login": user_login
-        },
-        "credentials": {
+    user_payload = []
+    data = {}
+    data["profile"] = {
+        "firstName": user_firstname,
+        "lastName": user_lastname,
+        "email": user_email,
+        "login": user_login
+    }
+
+    if password_required:
+        data["credentials"] = {
             "password": {"value": user_password},
         }
-    }]
+    elif password_import:
+        data["credentials"] = {
+            "password": {"hook": {"type": "default"}},
+        }
+
+    user_payload.append(data)
+
+    print(user_payload)
+
     return user_payload
 
 
@@ -514,16 +532,50 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
 
 @cli.command(short_help='Create users')
 @global_options
-@click.option('--multiple', '-m', is_flag=True, help='Create multiple users')
-@click.option('--mode', default='json', help='User paylod format (JSON or CSV)')
+@click.option('--multiple', '-m', is_flag=True, help='Create multiple users', cls=MutuallyExclusiveOption, mutually_exclusive=["input_file"])
+@click.option('--default-password', help='Default password for all users', cls=MutuallyExclusiveOption, mutually_exclusive=["no_password", "import_password", "input_file"])
+@click.option('--no-password', is_flag=True, help='Create users without password', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "import_password", "input_file"])
+@click.option('--import-password', is_flag=True, help='Create password import hook enabled users', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password", "input_file"])
+@click.option('--activate', is_flag=True, help='Create users without password')
+@click.option('--file', '-f', 'input_file', help='Input file', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password" "multiple"])
+@click.option('--mode', default='json', help='User paylod format (JSON or CSV)', cls=DependentOption, dependent_on=["input_file"])
+@click.option('--csv-options', help='Create user options', cls=DependentOption, dependent_on=["mode"])
 @click.pass_context
-def create(ctx, multiple, mode, **kwargs):
+def create(ctx, multiple, default_password, no_password, import_password, activate, input_file, mode, csv_options, **kwargs):
     """Create users."""
 
-    user_payload = _multiple_user_from_prompt() if multiple else _single_user_from_prompt()
+    debug = kwargs["debug"]
+    datestr = datetime.now().strftime("%Y%m%d-%H%M%S")
 
-    # debug = kwargs["debug"]
+    user_payload = []
 
+    if input_file is None:
+        user_payload = _multiple_user_from_prompt(password=default_password, password_import=import_password, password_required=(not no_password) and (not import_password)) \
+            if multiple \
+            else _single_user_from_prompt(password=default_password, password_import=import_password, password_required=(not no_password) and (not import_password))
+
+    options = {}
+    if csv_options:
+        patterns = csv_options.split(",")
+        for p in patterns:
+            components = p.split(":")
+            if len(components) != 2:
+                raise click.ClickException("Invalid options. Use `key1:value1[,key2:value2,...]` format.")
+            key = components[0]
+            val = components[1]
+            if key in ["default-password", "no-password", "import-password", "hashed-password", "hash-algorithm", "hash-salt"]:
+                options[key] = val
     userMgr = get_handler(ctx, kwargs["profile"], "user")
-    result = userMgr.createUsers(user_payload, mode=mode)
+    result = userMgr.createUsers(inputs=user_payload, file=input_file, mode=mode, options=options, activate=activate and (not import_password))
+
+    if debug:
+        errors = []
+        if result:
+            errors = errors + result["errors"]
+        if len(errors) > 0:
+            errorFile = "okt_errors_user_create_" + datestr + ".log"
+            with open(errorFile, 'w') as outfile:
+                json.dump(errors, outfile)
+                click.echo(f"Error information saved to {errorFile}")
+
     print(result)
