@@ -9,8 +9,8 @@ def test_cli_config():
     assert ("Enter Okta Org" in result.output)
 
 
-def test_cli_config_list():
+def test_cli_config_show():
     runner = CliRunner()
-    result = runner.invoke(cli, ['config', 'list'])
+    result = runner.invoke(cli, ['config', 'show'])
     assert result.exit_code == 0
-    assert ("base_url" in result.output) and ("api_token" in result.output)
+    assert ("Enter profile name" in result.output)
