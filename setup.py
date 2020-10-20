@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 # circleci.py version
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -38,7 +38,7 @@ setup(
     description="CLI tool for Okta",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/indranilokg/okta-cli",
+    url="https://github.com/indranilokg/atko-cli",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     license="MIT",
@@ -54,6 +54,11 @@ setup(
     },
     install_requires=[
         'click>=7.0',
-        'oktapysdk'
+        'requests>=2.23.0',
+        'pandas',
+        'jwcrypto',
+        'py_jwt_verifier',
+        'pyjwt',
+        'prettytable'
     ],
 )

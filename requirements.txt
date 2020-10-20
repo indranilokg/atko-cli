@@ -5,3 +5,6 @@ coverage
 codecov
 twine
 PrettyTable
+sphinx
+recommonmark
+py_jwt_verifier

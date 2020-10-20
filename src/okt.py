@@ -26,7 +26,8 @@ class OktaCLI(click.MultiCommand):
             with open(fn) as f:
                 code = compile(f.read(), fn, 'exec')
                 eval(code, ns, ns)
-        except Exception:
+        except Exception as e:
+            print(e)
             pass
         else:
             return ns['cli']
