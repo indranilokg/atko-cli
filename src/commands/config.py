@@ -58,7 +58,7 @@ def show(ctx, profile):
         for key in creds[profile]:
             click.echo(f"{key}: {creds[profile][key]}")
     except KeyError as err:
-        raise click.ClickException("Enter a valid profile name. Run `okt config list` to find the confgured profiles.") from err
+        raise click.ClickException("Enter a valid profile name. Run `okt config list` to find the configured profiles.") from err
 
 
 @cli.command()

@@ -17,8 +17,8 @@ We are in pre-alpha stage, meaning there is still a lot features left to impleme
 ## Usage
 
 ```bash
-$ aktocli --help
-Usage: aktocli [OPTIONS] COMMAND [ARGS]...
+$ akto --help
+Usage: akto [OPTIONS] COMMAND [ARGS]...
 
   CLI tool for your Okta org.
 
@@ -27,11 +27,13 @@ Options:
 
 Commands:
   config  Store configuration values.
+  users   Okta User Management
+...
 ```
 
 ## Documentation
 
-Read the [official docs](https://okt-cli.github.com/manual/) for more information. (Not Implemented)
+Read the [official docs](https://atko-cli.github.com/manual/) for more information. (Not Implemented)
 
 
 <!-- this anchor is linked to from elsewhere, so avoid renaming it -->
