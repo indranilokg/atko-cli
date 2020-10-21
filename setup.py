@@ -26,12 +26,12 @@ class VerifyVersionCommand(install):
 
 
 setup(
-    name="okt",
+    name="atko",
     version=VERSION,
-    py_modules=['okt'],
+    py_modules=['atko'],
     entry_points='''
         [console_scripts]
-        okt=okt:cli
+        atko=atkocli:cli
     ''',
     author="Indranil Jha",
     author_email="indranilokg@gmail.com",
@@ -55,10 +55,10 @@ setup(
     install_requires=[
         'click>=7.0',
         'requests>=2.23.0',
-        'pandas',
-        'jwcrypto',
-        'py_jwt_verifier',
-        'pyjwt',
-        'prettytable'
+        'pandas==1.1.3',
+        'jwcrypto==0.8',
+        'py_jwt_verifier==0.7.1',
+        'pyjwt==1.7.1',
+        'prettytable==1.0.1'
     ],
 )

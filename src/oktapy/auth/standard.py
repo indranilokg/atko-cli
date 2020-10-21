@@ -125,8 +125,10 @@ class oauth(object):
 
         if flow == "password":
             scopes = scopes + ['offline_access']
-            headers = {'authorization': 'Basic ' + utils.base64Encode(config[constants.CONFIG_KEY_CLIENT_ID] + ":" + config[constants.CONFIG_KEY_CLIENT_SECRET]),
-                       'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'}
+            _base64_encoded_credentials = utils.base64Encode(config[constants.CONFIG_KEY_CLIENT_ID] + ":" + config[constants.CONFIG_KEY_CLIENT_SECRET])
+            headers = {'authorization': 'Basic ' + _base64_encoded_credentials,
+                       'Content-Type': 'application/x-www-form-urlencoded',
+                       'Accept': 'application/json'}
             data = {"grant_type": "password", "scope": self._formatScopes(
                 scopes), "username": config[constants.CONFIG_KEY_USER_ID], "password": config[constants.CONFIG_KEY_USER_PWD]}
         else:
@@ -165,8 +167,10 @@ class oauth(object):
                     "client_id": config[constants.CONFIG_KEY_CLIENT_ID],
                     "code_verifier": self._PKCECode["code_verifier"]}
         else:
-            headers = {'authorization': 'Basic ' + utils.base64Encode(config[constants.CONFIG_KEY_CLIENT_ID] + ":" + config[constants.CONFIG_KEY_CLIENT_SECRET]),
-                       'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'}
+            _base64_encoded_credentials = utils.base64Encode(config[constants.CONFIG_KEY_CLIENT_ID] + ":" + config[constants.CONFIG_KEY_CLIENT_SECRET])
+            headers = {'authorization': 'Basic ' + _base64_encoded_credentials,
+                       'Content-Type': 'application/x-www-form-urlencoded',
+                       'Accept': 'application/json'}
             data = {"grant_type": "authorization_code", "code": code,
                     "redirect_uri": config[constants.CONFIG_KEY_REDIRECT_URI]}
 

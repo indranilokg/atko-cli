@@ -221,12 +221,12 @@ def cli():
     pass
 
 
-@cli.command(short_help='Get cuurent user')
+@cli.command(short_help='Get current user')
 @click.option('--attr', help='Filter with subset of attributes')
 @global_options
 @click.pass_context
 def current(ctx, attr, **kwargs):
-    """Get cuurent user"""
+    """Get current user"""
 
     output_mode = kwargs["output"]
 
@@ -252,7 +252,7 @@ def current(ctx, attr, **kwargs):
 @click.option('--multiple', '-m', is_flag=True, help='Search for multiple users.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])
 @click.option('--field', default="login", help='Attribute to find users.', cls=DependentOption, dependent_on=["multiple"])
 @click.option('--conditions', '-c', is_flag=True, help='Search based on conditions.', cls=MutuallyExclusiveOption, mutually_exclusive=["multiple"])
-@click.option('--pattern', '-e', is_flag=True, help='Search based on pattern or substring. Expensive operation.', cls=DependentOption, dependent_on=["conditions"])
+@click.option('--pattern', '-e', is_flag=True, help='Search based on pattern or substring. Expensive operation.', cls=DependentOption, dependent_on=["conditions"])  # noqa: E501
 @global_options
 @click.argument('query')
 @click.pass_context
@@ -328,7 +328,7 @@ def get(ctx, output_file, query, attr, count, all, multiple, field, conditions, 
 @cli.command(short_help='List users')
 @click.option('--file', 'output_file', type=click.File(mode="w"), help='Output file')
 @click.option('--all', '-a', is_flag=True, help='List all records')
-@click.option('--query', '-q', help='Matches the specified query against first name, last name, or email', cls=MutuallyExclusiveOption, mutually_exclusive=["filter", "search"])
+@click.option('--query', '-q', help='Matches the specified query against first name, last name, or email', cls=MutuallyExclusiveOption, mutually_exclusive=["filter", "search"])  # noqa: E501
 @click.option('--filter', '-f', help='Matches with the filter criteria', cls=MutuallyExclusiveOption, mutually_exclusive=["query", "search"])
 @click.option('--search', '-s', help='Searches based on criteria', cls=MutuallyExclusiveOption, mutually_exclusive=["query", "filter"])
 @click.option('--attr', help='Filter with subset of attributes')
@@ -390,9 +390,9 @@ def find(ctx, output_file, all, query, filter, search, attr, count, pattern, **k
 @click.option('--notify', is_flag=True, help='Send email notification. Use caution.')
 @click.option('--field', default="id", help='Attribute to find users.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])
 @click.option('--prefix', is_flag=True, help='Enable prefix search.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])
-@click.option('--file', '-f', is_flag=True, help='Header based CSV file containing target users.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])
-@click.option('--conditions', '-c', is_flag=True, help='Search based on conditions.', cls=MutuallyExclusiveOption, mutually_exclusive=["file", "field", "prefix"])
-@click.option('--pattern', '-e', is_flag=True, help='Search based on pattern or substring. Expensive operation.', cls=DependentOption, dependent_on=["conditions"])
+@click.option('--file', '-f', is_flag=True, help='Header based CSV file containing target users.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])  # noqa: E501
+@click.option('--conditions', '-c', is_flag=True, help='Search based on conditions.', cls=MutuallyExclusiveOption, mutually_exclusive=["file", "field", "prefix"])  # noqa: E501
+@click.option('--pattern', '-e', is_flag=True, help='Search based on pattern or substring. Expensive operation.', cls=DependentOption, dependent_on=["conditions"])  # noqa: E501
 @click.argument('query')
 @click.pass_context
 def deactivate(ctx, query, confirm, notify, field, prefix, file, conditions, pattern, **kwargs):
@@ -405,7 +405,14 @@ def deactivate(ctx, query, confirm, notify, field, prefix, file, conditions, pat
     userMgr = get_handler(ctx, kwargs["profile"], "user")
 
     try:
-        targets = _retrieve_target_ids(userMgr, query=query, operation="deactivate", field=field, prefix=prefix, file=file, conditions=conditions, pattern=pattern)
+        targets = _retrieve_target_ids(userMgr,
+                                       query=query,
+                                       operation="deactivate",
+                                       field=field,
+                                       prefix=prefix,
+                                       file=file,
+                                       conditions=conditions,
+                                       pattern=pattern)
     except ServiceException as ex:
         click.echo(traceback.format_exc()) if debug else click.echo(f"Error: {ex.info}")
         sys.exit(113)
@@ -453,9 +460,9 @@ def deactivate(ctx, query, confirm, notify, field, prefix, file, conditions, pat
 @click.option('--notify', is_flag=True, help='Send email notification. Use caution.')
 @click.option('--field', default="id", help='Attribute to find users.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])
 @click.option('--prefix', is_flag=True, help='Enable prefix search.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])
-@click.option('--file', '-f', is_flag=True, help='Header based CSV file containing target users.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])
-@click.option('--conditions', '-c', is_flag=True, help='Search based on conditions.', cls=MutuallyExclusiveOption, mutually_exclusive=["file", "field", "prefix"])
-@click.option('--pattern', '-e', is_flag=True, help='Search based on pattern or substring. Expensive operation.', cls=DependentOption, dependent_on=["conditions"])
+@click.option('--file', '-f', is_flag=True, help='Header based CSV file containing target users.', cls=MutuallyExclusiveOption, mutually_exclusive=["conditions"])  # noqa: E501
+@click.option('--conditions', '-c', is_flag=True, help='Search based on conditions.', cls=MutuallyExclusiveOption, mutually_exclusive=["file", "field", "prefix"])  # noqa: E501
+@click.option('--pattern', '-e', is_flag=True, help='Search based on pattern or substring. Expensive operation.', cls=DependentOption, dependent_on=["conditions"])  # noqa: E501
 @click.argument('query')
 @click.pass_context
 def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern, **kwargs):
@@ -470,8 +477,22 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
     userMgr = get_handler(ctx, kwargs["profile"], "user")
 
     try:
-        deactivate_targets = _retrieve_target_ids(userMgr, query=query, operation="deactivate", field=field, prefix=prefix, file=file, conditions=conditions, pattern=pattern)
-        delete_targets = _retrieve_target_ids(userMgr, query=query, operation="delete", field=field, prefix=prefix, file=file, conditions=conditions, pattern=pattern)
+        deactivate_targets = _retrieve_target_ids(userMgr,
+                                                  query=query,
+                                                  operation="deactivate",
+                                                  field=field,
+                                                  prefix=prefix,
+                                                  file=file,
+                                                  conditions=conditions,
+                                                  pattern=pattern)
+        delete_targets = _retrieve_target_ids(userMgr,
+                                              query=query,
+                                              operation="delete",
+                                              field=field,
+                                              prefix=prefix,
+                                              file=file,
+                                              conditions=conditions,
+                                              pattern=pattern)
     except ServiceException as ex:
         click.echo(traceback.format_exc()) if debug else click.echo(f"Error: {ex.info}")
         sys.exit(113)
@@ -533,9 +554,9 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
 @cli.command(short_help='Create users')
 @global_options
 @click.option('--multiple', '-m', is_flag=True, help='Create multiple users', cls=MutuallyExclusiveOption, mutually_exclusive=["input_file"])
-@click.option('--default-password', help='Default password for all users', cls=MutuallyExclusiveOption, mutually_exclusive=["no_password", "import_password", "input_file"])
-@click.option('--no-password', is_flag=True, help='Create users without password', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "import_password", "input_file"])
-@click.option('--import-password', is_flag=True, help='Create password import hook enabled users', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password", "input_file"])
+@click.option('--default-password', help='Default password for all users', cls=MutuallyExclusiveOption, mutually_exclusive=["no_password", "import_password", "input_file"])  # noqa: E501
+@click.option('--no-password', is_flag=True, help='Create users without password', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "import_password", "input_file"])  # noqa: E501
+@click.option('--import-password', is_flag=True, help='Create password import hook enabled users', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password", "input_file"])  # noqa: E501
 @click.option('--activate', is_flag=True, help='Create users without password')
 @click.option('--file', '-f', 'input_file', help='Input file', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password" "multiple"])
 @click.option('--mode', default='json', help='User paylod format (JSON or CSV)', cls=DependentOption, dependent_on=["input_file"])
@@ -550,9 +571,13 @@ def create(ctx, multiple, default_password, no_password, import_password, activa
     user_payload = []
 
     if input_file is None:
-        user_payload = _multiple_user_from_prompt(password=default_password, password_import=import_password, password_required=(not no_password) and (not import_password)) \
+        user_payload = _multiple_user_from_prompt(password=default_password,
+                                                  password_import=import_password,
+                                                  password_required=(not no_password) and (not import_password)) \
             if multiple \
-            else _single_user_from_prompt(password=default_password, password_import=import_password, password_required=(not no_password) and (not import_password))
+            else _single_user_from_prompt(password=default_password,
+                                          password_import=import_password,
+                                          password_required=(not no_password) and (not import_password))
 
     options = {}
     if csv_options:

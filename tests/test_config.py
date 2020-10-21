@@ -1,5 +1,5 @@
 from click.testing import CliRunner
-from okt import cli
+from atkocli import cli
 
 
 def test_cli_config():

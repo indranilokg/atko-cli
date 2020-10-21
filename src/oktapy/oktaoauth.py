@@ -40,12 +40,12 @@ class OktaOAuth(object):
         token = None
         callerObjectName = caller.__class__.__name__
         if callerObjectName not in list(constants.O4O_SCOPE_MAP.keys()):
-            raise ClientException(f"Caller \"{callerObjectName}\" is not a valid management resource. Supported resources are {list(constants.O4O_SCOPE_MAP.keys())}")
+            raise ClientException(f"Caller \"{callerObjectName}\" is not a valid management resource. Supported resources are {list(constants.O4O_SCOPE_MAP.keys())}")  # noqa: E501
         if callerObjectName not in list(self._tokenstore.keys()):
             flow = self._oauthConfig[constants.CONFIG_KEY_OAUTH_FLOW]
             if flow in ['pkce', 'authorization_code', 'implicit']:
                 authUrl = self.getAuthnURL(caller)
-                raise TokenException("not_authenticated", f"Authenticate first with {flow} flow. Use the following URL - {authUrl}. Call the authenticate() method of the resource and seed the token", authUrl)
+                raise TokenException("not_authenticated", f"Authenticate first with {flow} flow. Use the following URL - {authUrl}. Call the authenticate() method of the resource and seed the token", authUrl)  # noqa: E501
             elif flow in ['password', 'client_credentials']:
                 if flow == 'password':
                     scopes = constants.O4O_SCOPE_MAP[callerObjectName]
@@ -54,7 +54,7 @@ class OktaOAuth(object):
                 token, refresh_token = self._retrieveToken(scopes)
                 self._checkinToken(callerObjectName, token)
             else:
-                raise TokenException("not_authenticated", f"Authenticate first with {flow} flow. Call the authenticate() method of the resource and seed the token")
+                raise TokenException("not_authenticated", f"Authenticate first with {flow} flow. Call the authenticate() method of the resource and seed the token")  # noqa: E501
         else:
             try:
                 token = self._checkoutToken(callerObjectName, skip_verification=caller.isTokenVerified())
@@ -64,7 +64,7 @@ class OktaOAuth(object):
                     flow = self._oauthConfig[constants.CONFIG_KEY_OAUTH_FLOW]
                     if flow in ['pkce', 'authorization_code', 'implicit']:
                         authUrl = self.getAuthnURL(caller)
-                        raise TokenException("invalid_authentication", f"Try authenticating with {flow} flow. Use the following URL - {authUrl}. Call the authenticate() method of the resource and seed the token", authUrl)
+                        raise TokenException("invalid_authentication", f"Try authenticating with {flow} flow. Use the following URL - {authUrl}. Call the authenticate() method of the resource and seed the token", authUrl)  # noqa: E501
                     elif flow in ['password', 'client_credentials']:
                         if flow == 'password':
                             scopes = constants.O4O_SCOPE_MAP[callerObjectName]
@@ -73,14 +73,14 @@ class OktaOAuth(object):
                         token, refresh_token = self._retrieveToken(scopes)
                         self._checkinToken(callerObjectName, token)
                 else:
-                    raise TokenException("invalid_authentication", f"Try authenticating with {flow} flow. Call the authenticate() method of the resource and seed the token")
+                    raise TokenException("invalid_authentication", f"Try authenticating with {flow} flow. Call the authenticate() method of the resource and seed the token")  # noqa: E501
 
         return token
 
     def authenticate(self, caller, input=None, verify=True, passive=False, refresh=False):
         callerObjectName = caller.__class__.__name__
         if callerObjectName not in list(constants.O4O_SCOPE_MAP.keys()):
-            raise ClientException(f"Caller \"{callerObjectName}\" is not a valid management resource. Supported resources are {list(constants.O4O_SCOPE_MAP.keys())}")
+            raise ClientException(f"Caller \"{callerObjectName}\" is not a valid management resource. Supported resources are {list(constants.O4O_SCOPE_MAP.keys())}")  # noqa: E501
         scopes = constants.O4O_SCOPE_MAP[callerObjectName]
         flow = self._oauthConfig[constants.CONFIG_KEY_OAUTH_FLOW]
         token = None
@@ -105,7 +105,7 @@ class OktaOAuth(object):
             self._oauth.checkTokenValidity(self._oauthConfig, token)
         callerObjectName = caller.__class__.__name__
         if callerObjectName not in list(constants.O4O_SCOPE_MAP.keys()):
-            raise ClientException(f"Caller \"{callerObjectName}\" is not a valid management resource. Supported resources are {list(constants.O4O_SCOPE_MAP.keys())}")
+            raise ClientException(f"Caller \"{callerObjectName}\" is not a valid management resource. Supported resources are {list(constants.O4O_SCOPE_MAP.keys())}")  # noqa: E501
         self._tokenstore[callerObjectName] = token
 
     def isTokenValid(self, token):
@@ -116,7 +116,7 @@ class OktaOAuth(object):
 
         callerObjectName = caller.__class__.__name__
         if callerObjectName not in list(constants.O4O_SCOPE_MAP.keys()):
-            raise ClientException(f"Caller \"{callerObjectName}\" is not a valid management resource. Supported resources are {list(constants.O4O_SCOPE_MAP.keys())}")
+            raise ClientException(f"Caller \"{callerObjectName}\" is not a valid management resource. Supported resources are {list(constants.O4O_SCOPE_MAP.keys())}")  # noqa: E501
         scopes = constants.O4O_SCOPE_MAP[callerObjectName]
         result = self._oauth.authorize(self._oauthConfig, scopes)
         return result

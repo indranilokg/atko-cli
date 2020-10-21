@@ -2,7 +2,7 @@
 
 # Atko CLI (reverse Okta CLI)
 
-`akto` is [Bizarro World](https://en.wikipedia.org/wiki/Bizarro) version of [Okta CLI](https://github.com/oktadeveloper/okta-cli). It is a completely different approach to manage Okta resources using different technology stack(***Python***). The primarily goal of Akto CLI is automate actions like create, update and delete resources that would require many clicks in the Okta UI. :tada:
+`aktocli` is [Bizarro World](https://en.wikipedia.org/wiki/Bizarro) version of [Okta CLI](https://github.com/oktadeveloper/okta-cli). It is a completely different approach to manage Okta resources using different technology stack(***Python***). The primarily goal of Akto CLI is automate actions like create, update and delete resources that would require many clicks in the Okta UI. :tada:
 
 Supported resources:
 
@@ -27,11 +27,13 @@ Options:
 
 Commands:
   config  Store configuration values.
+  users   Okta User Management
+...
 ```
 
 ## Documentation
 
-Read the [official docs](https://okt-cli.github.com/manual/) for more information. (Not Implemented)
+Read the [official docs](https://atko-cli.github.com/manual/) for more information. (Not Implemented)
 
 
 <!-- this anchor is linked to from elsewhere, so avoid renaming it -->
@@ -39,7 +41,7 @@ Read the [official docs](https://okt-cli.github.com/manual/) for more informatio
 
 ### macOS
 
-`atko` is available via Homebrew. (Not Implemented)
+`atkocli` is available via Homebrew. (Not Implemented)
 
 #### Homebrew
 
@@ -66,7 +68,7 @@ See here on how to [build Atko CLI from source](/docs/source.md). (Not Implement
 ## Author
 
 * Indranil - [indranilokg](https://github.com/indranilokg), Creator :tada:
-* Noi Nariak - [noinarisak](https://github.com/indranilokg), Contributor
+* Noi Narisak - [noinarisak](https://github.com/indranilokg), Contributor
 
 <!-- # Markdown Mapping -->
 [docs]: https://atko-cli.github.com/manual
