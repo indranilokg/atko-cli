@@ -6,18 +6,18 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - test-python-install:
-          version: "3.7"
-          requires:
-            - build
-      - deploy:
-          requires:
-            - build
-          filters:
-            tags:
-              only: /[0-9]+(\.[0-9]+)*/
-            branches:
-              ignore: /.*/
+      # - test-python-install:
+      #     version: "3.7"
+      #     requires:
+      #       - build
+      # - deploy:
+      #     requires:
+      #       - build
+      #     filters:
+      #       tags:
+      #         only: /[0-9]+(\.[0-9]+)*/
+      #       branches:
+      #         ignore: /.*/
 jobs:
   build:
     docker:
@@ -44,75 +44,75 @@ jobs:
             codecov
       - store_artifacts:
           path: htmlcov/
-  test-python-install:
-    parameters:
-      version:
-        type: string
-        default: latest
-    docker:
-      - image: circleci/python:<< parameters.version >>
-    steps:
-      - checkout
-      - restore_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}
-      - run:
-          name: install python dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            make dev
-      - save_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}
-          paths:
-            - "venv"
-      - run:
-          name: run tests
-          command: |
-            . venv/bin/activate
-            make test
-            codecov
-      - store_artifacts:
-          path: htmlcov/
-      - run:
-          name: Smoke Test Install 
-          command: |
-            python --version
-            sudo pip3 install circleci
-  deploy:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - checkout
-      - restore_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}
-      - run:
-          name: install python dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            make dev
-      - save_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}
-          paths:
-            - "venv"
-      - run:
-          name: verify git tag vs. version
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            python setup.py verify
-      - run:
-          name: init .pypirc
-          command: |
-            echo -e "[pypi]" >> ~/.pypirc
-            echo -e "username = indranilokg" >> ~/.pypirc
-            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
-      - run:
-          name: create packages
-          command: |
-            make package
-      - run:
-          name: upload to pypi
-          command: |
-            . venv/bin/activate
-            twine upload dist/*
+  # test-python-install:
+  #   parameters:
+  #     version:
+  #       type: string
+  #       default: latest
+  #   docker:
+  #     - image: circleci/python:<< parameters.version >>
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         key: v1-dependency-cache-{{ checksum "setup.py" }}
+  #     - run:
+  #         name: install python dependencies
+  #         command: |
+  #           python3 -m venv venv
+  #           . venv/bin/activate
+  #           make dev
+  #     - save_cache:
+  #         key: v1-dependency-cache-{{ checksum "setup.py" }}
+  #         paths:
+  #           - "venv"
+  #     - run:
+  #         name: run tests
+  #         command: |
+  #           . venv/bin/activate
+  #           make test
+  #           codecov
+  #     - store_artifacts:
+  #         path: htmlcov/
+  #     - run:
+  #         name: Smoke Test Install
+  #         command: |
+  #           python --version
+  #           sudo pip3 install circleci
+  # deploy:
+  #   docker:
+  #     - image: circleci/python:3.7
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         key: v1-dependency-cache-{{ checksum "setup.py" }}
+  #     - run:
+  #         name: install python dependencies
+  #         command: |
+  #           python3 -m venv venv
+  #           . venv/bin/activate
+  #           make dev
+  #     - save_cache:
+  #         key: v1-dependency-cache-{{ checksum "setup.py" }}
+  #         paths:
+  #           - "venv"
+  #     - run:
+  #         name: verify git tag vs. version
+  #         command: |
+  #           python3 -m venv venv
+  #           . venv/bin/activate
+  #           python setup.py verify
+  #     - run:
+  #         name: init .pypirc
+  #         command: |
+  #           echo -e "[pypi]" >> ~/.pypirc
+  #           echo -e "username = indranilokg" >> ~/.pypirc
+  #           echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+  #     - run:
+  #         name: create packages
+  #         command: |
+  #           make package
+  #     - run:
+  #         name: upload to pypi
+  #         command: |
+  #           . venv/bin/activate
+  #           twine upload dist/*
