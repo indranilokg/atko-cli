@@ -5,10 +5,11 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 # circleci.py version
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
@@ -23,20 +24,21 @@ class VerifyVersionCommand(install):
             )
             sys.exit(info)
 
+
 setup(
-    name="okt",
+    name="atko",
     version=VERSION,
-    py_modules=['okt'],
+    py_modules=['atko'],
     entry_points='''
         [console_scripts]
-        okt=okt:cli
+        atko=atkocli:cli
     ''',
     author="Indranil Jha",
     author_email="indranilokg@gmail.com",
     description="CLI tool for Okta",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/indranilokg/okta-cli",
+    url="https://github.com/indranilokg/atko-cli",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     license="MIT",
@@ -52,6 +54,11 @@ setup(
     },
     install_requires=[
         'click>=7.0',
-        'oktapysdk'
+        'requests>=2.23.0',
+        'pandas==1.1.3',
+        'jwcrypto==0.8',
+        'py_jwt_verifier==0.7.1',
+        'pyjwt==1.7.1',
+        'prettytable==1.0.1'
     ],
 )
