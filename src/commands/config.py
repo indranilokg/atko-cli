@@ -58,7 +58,44 @@ def show(ctx, profile):
         for key in creds[profile]:
             click.echo(f"{key}: {creds[profile][key]}")
     except KeyError as err:
-        raise click.ClickException("Enter a valid profile name. Run `okt config list` to find the configured profiles.") from err
+        raise click.ClickException("Enter a valid profile name. Run `atko config list` to find the configured profiles.") from err
+
+
+@cli.command()
+@click.option("--profile", "-p", prompt="Enter profile name")
+@click.pass_context
+def remove(ctx, profile):
+    """Remove profile."""
+
+    config_file = ctx.obj.get("config_file")
+    creds_file = ctx.obj.get("creds_file")
+    cache_file = ctx.obj.get("cache_file")
+
+    config = configparser.ConfigParser()
+    config.read(config_file)
+
+    if not config.has_section(profile):
+        raise click.ClickException("Enter a valid profile name. Run `atko config list` to find the configured profiles.")
+
+    creds = configparser.ConfigParser()
+    creds.read(creds_file)
+
+    with open(cache_file, 'r') as infile:
+        oauthCache = json.load(infile)
+
+    config.remove_section(profile)
+    with open(config_file, "w") as cfgfile:
+        config.write(cfgfile)
+
+    creds.remove_section(profile)
+    with open(creds_file, "w") as credsfile:
+        creds.write(credsfile)
+
+    _removeCacheEntry(oauthCache, profile)
+    with open(cache_file, 'w') as outfile:
+        json.dump(oauthCache, outfile)
+
+    click.echo(f"Profile {profile} removed.")
 
 
 @cli.command()

@@ -11,7 +11,7 @@ from click import Option, UsageError
 
 
 _global_options = [
-    click.option('--profile', '-p', default="DEFAULT", envvar='OKT_PROFILE', help='Profile name'),
+    click.option('--profile', '-p', default="DEFAULT", envvar='ATKO_PROFILE', help='Profile name'),
     click.option('--debug', is_flag=True, help="Debug information on Exceptions"),
     click.option('--output', '-o', default="stdout", help='Output format')
 ]
