@@ -1,3 +1,5 @@
+VENV = venv
+
 .PHONY: help clean dev package test
 
 help:
@@ -5,6 +7,18 @@ help:
 	@echo "The following make targets are available:"
 	@echo "	 dev 	install all deps for dev env"
 	@echo "	 test	run all tests with coverage"
+
+install: requirements.txt
+	@echo "+ $@"
+	python3 -m venv $(VENV)
+
+clean-venv:
+	@echo "+ $@"
+	rm -rf $(VENV)
+
+clean-dev-full:
+	@echo "+ $@"
+	rm -rf ~/.atkocli
 
 clean:
 	@echo "+ $@"
@@ -16,8 +30,10 @@ clean:
 
 dev:
 	@echo "+ $@"
-	pip install -r requirements.txt
-	pip install -e .
+	$(VENV)/bin/pip install -r requirements.txt --upgrade
+	$(VENV)/bin/pip install -e .
+	@echo "+ "
+	@echo "Do not forgot to 'source venv/bin/active'"
 
 package:
 	@echo "+ $@"
