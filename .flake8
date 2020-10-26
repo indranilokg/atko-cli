@@ -1,8 +1,8 @@
 [flake8]
 ignore = E266, E402
-exclude = .git/*, venv/*, build/*
+exclude = .git/*, venv/*, build/*, src/oktapy/*
 max-line-length = 160
-max-complexity = 10
+; max-complexity = 10 # //TODO: Activate when we have Unit Test so we can refactor.
 statistics = True
 count = True
 exit-zero = True

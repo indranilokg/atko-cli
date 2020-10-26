@@ -62,46 +62,46 @@ class AtkoCLI(click.MultiCommand):
 def cli(ctx):
     """CLI tool for your Okta org."""
 
-    configDir = os.path.expanduser("~/.atkocli")
-    configfile = os.path.expanduser(configDir + "/config")
-    credsfile = os.path.expanduser(configDir + "/credentials")
-    cachefile = os.path.expanduser(configDir + "/cache")
+    _config_directory = os.path.expanduser("~/.atkocli")
+    _config_file = os.path.expanduser(_config_directory + "/config")
+    _credential_file = os.path.expanduser(_config_directory + "/credentials")
+    _cache_file = os.path.expanduser(_config_directory + "/cache")
 
-    if(not os.path.isdir(configDir)):
-        click.echo(f"{configDir} does not exist")
+    if(not os.path.isdir(_config_directory)):
+        click.echo(f"{_config_directory} does not exist")
         try:
-            os.mkdir(os.path.expanduser(configDir))
+            os.mkdir(os.path.expanduser(_config_directory))
         except OSError:
-            click.echo(f"Creation of the directory {configDir} failed")
+            click.echo(f"Creation of the directory {_config_directory} failed")
             raise
         else:
-            click.echo(f"Successfully created the directory {configDir}")
+            click.echo(f"Successfully created the directory {_config_directory}")
 
-    config = configparser.ConfigParser()
-    creds = configparser.ConfigParser()
+    _config = configparser.ConfigParser()
+    _credentials = configparser.ConfigParser()
 
-    if os.path.exists(configfile):
-        config.read(configfile)
+    if os.path.exists(_config_file):
+        _config.read(_config_file)
     else:
-        with open(configfile, 'w'):
-            config.write(configfile)
+        with open(_config_file, 'w'):
+            _config.write(_config_file)
 
-    if os.path.exists(credsfile):
-        creds.read(credsfile)
+    if os.path.exists(_credential_file):
+        _credentials.read(_credential_file)
     else:
-        with open(credsfile, 'w'):
-            creds.write(credsfile)
+        with open(_credential_file, 'w'):
+            _credentials.write(_credential_file)
 
-    if not os.path.exists(cachefile):
-        with open(cachefile, 'w') as out:
+    if not os.path.exists(_cache_file):
+        with open(_cache_file, 'w') as out:
             json.dump({}, out)
 
     ctx.obj = {
-        'config': config,
-        'creds': creds,
-        'config_file': configfile,
-        'creds_file': credsfile,
-        'cache_file': cachefile
+        'config': _config,
+        'credentials': _credentials,
+        'config_file': _config_file,
+        'credential_file': _credential_file,
+        'cache_file': _cache_file
     }
 
 

@@ -38,7 +38,7 @@ def _multiple_user_from_prompt(password=None, password_import=False, password_re
         data = {}
         data["profile"] = {
             "firstName": prefix + "user" + str(i + 1),
-            "lastName": "oktgen",
+            "lastName": "atko_generated",
             "email": formatted_login,
             "login": formatted_login
         }
@@ -105,49 +105,49 @@ def _single_user_from_prompt(password=None, password_import=False, password_requ
     return user_payload
 
 
-def _retrieve_target_ids(userMgr, query, operation=None, field="id", prefix=False, file=False, conditions=False, pattern=False):
+def _retrieve_target_ids(user_manager, query, operation=None, field="id", prefix=False, file=False, conditions=False, pattern=False):
 
     ALL_STATUS = ["STAGED", "PROVISIONED", "ACTIVE", "RECOVERY", "LOCKED_OUT", "PASSWORD_EXPIRED", "SUSPENDED", "DEPROVISIONED"]
 
     if operation == "deactivate":
-        statusList = list(set(ALL_STATUS) - {"DEPROVISIONED"})
+        status_list = list(set(ALL_STATUS) - {"DEPROVISIONED"})
     elif operation == "delete":
-        statusList = ["DEPROVISIONED"]
+        status_list = ["DEPROVISIONED"]
     else:
-        statusList = ALL_STATUS
+        status_list = ALL_STATUS
 
     if file:
         data = readCSV(query)
-        queryField = data.get(field, {})
-        if not queryField:
+        query_field = data.get(field, {})
+        if not query_field:
             return []
-        queryStr = ",".join(queryField)
+        query_str = ",".join(query_field)
     else:
-        queryStr = query
+        query_str = query
 
     if conditions:
-        criteria, p_dict = _get_filter_criteria(query, conditions=conditions, pattern=pattern, statusList=statusList)
-        targets = [user["id"] for user in userMgr.getUsers(search=criteria, deepSearch=p_dict)]
+        criteria, p_dict = _get_filter_criteria(query, conditions=conditions, pattern=pattern, status_list=status_list)
+        targets = [user["id"] for user in user_manager.getUsers(search=criteria, deepSearch=p_dict)]
     else:
-        criteria, p_dict = _get_filter_criteria(queryStr, field, statusList=statusList, fuzzy=prefix)
-        targets = [user["id"] for user in userMgr.getUsers(search=criteria)]
+        criteria, p_dict = _get_filter_criteria(query_str, field, status_list=status_list, fuzzy=prefix)
+        targets = [user["id"] for user in user_manager.getUsers(search=criteria)]
 
     print(targets)
     return targets
 
 
-def _get_filter_criteria(query, field=None, statusList=[], conditions=False, pattern=False, fuzzy=False):
+def _get_filter_criteria(query, field=None, status_list=[], conditions=False, pattern=False, fuzzy=False):
 
     p_dict = {}
     criteria = ""
-    statusFilter = ""
+    status_filter = ""
 
-    if len(statusList) > 0:
-        for status in statusList:
-            statusFilter = statusFilter + f"status eq \"{status}\""
-            statusFilter = statusFilter + " or "
-        statusFilter = statusFilter[:-4]
-        statusFilter = "(" + statusFilter + ")"
+    if len(status_list) > 0:
+        for status in status_list:
+            status_filter = status_filter + f"status eq \"{status}\""
+            status_filter = status_filter + " or "
+        status_filter = status_filter[:-4]
+        status_filter = "(" + status_filter + ")"
 
     if conditions:
         if pattern:
@@ -159,11 +159,11 @@ def _get_filter_criteria(query, field=None, statusList=[], conditions=False, pat
                 key = components[0]
                 val = components[1]
                 p_dict[key] = val
-                criteria = statusFilter
+                criteria = status_filter
         else:
-            condn_list = query.split(",")
-            for condn in condn_list:
-                components = condn.split(":")
+            condition_list = query.split(",")
+            for condition in condition_list:
+                components = condition.split(":")
                 if len(components) != 2:
                     raise click.ClickException("Invalid condition. Use `key1:value1[,key2:value2,...]` format.")
                 key = components[0]
@@ -173,8 +173,8 @@ def _get_filter_criteria(query, field=None, statusList=[], conditions=False, pat
                 criteria = criteria + f"{key} sw \"{val}\""
                 criteria = criteria + " and "
             criteria = criteria[:-5]
-            if len(statusList) > 0:
-                criteria = "(" + criteria + ") and " + statusFilter
+            if len(status_list) > 0:
+                criteria = "(" + criteria + ") and " + status_filter
     else:
         op = "sw" if fuzzy else "eq"
         if field in ["id", "status", "type.id"]:
@@ -187,8 +187,8 @@ def _get_filter_criteria(query, field=None, statusList=[], conditions=False, pat
             criteria = criteria + f"{search} {op} \"{key}\""
             criteria = criteria + " or "
         criteria = criteria[:-4]
-        if len(statusList) > 0:
-            criteria = "(" + criteria + ") and " + statusFilter
+        if len(status_list) > 0:
+            criteria = "(" + criteria + ") and " + status_filter
     return criteria, p_dict
 
 
@@ -196,12 +196,12 @@ def tabulate(itemlist, all=False, mode="stdout", headers=['Login', 'First Name',
     if mode == "csv":
         item_frame = UserMgr.to_frame(itemlist)
         click.echo(",".join(item_frame.columns.tolist()))
-        csvList = [",".join(item) for item in item_frame.values]
-        click.echo("\n".join(csvList))
+        csv_list = [",".join(item) for item in item_frame.values]
+        click.echo("\n".join(csv_list))
         click.echo()
-        click.echo(f"{len(csvList)} record(s)")
+        click.echo(f"{len(csv_list)} record(s)")
     else:
-        t = PrettyTable(headers)
+        _pretty_table = PrettyTable(headers)
 
         if all or len(itemlist) <= 10:
             items = [item.summary() for item in itemlist]
@@ -210,8 +210,8 @@ def tabulate(itemlist, all=False, mode="stdout", headers=['Login', 'First Name',
             items = items + [["..." for i in range(len(headers))]] * 2
 
         for item in items:
-            t.add_row(item)
-        click.echo(t)
+            _pretty_table.add_row(item)
+        click.echo(_pretty_table)
         click.echo(f"{len(itemlist)} record(s)")
 
 
@@ -231,18 +231,18 @@ def current(ctx, attr, **kwargs):
 
     output_mode = kwargs["output"]
 
-    userMgr = get_handler(ctx, kwargs["profile"], "user")
-    currentUser = userMgr.getCurrentUser(attr=attr)
+    user_manager = get_handler(ctx, kwargs["profile"], "user")
+    current_user = user_manager.getCurrentUser(attr=attr)
     if output_mode == "id":
-        click.echo(currentUser["id"])
+        click.echo(current_user["id"])
     elif output_mode == "login":
-        click.echo(currentUser["profile"]["login"])
+        click.echo(current_user["profile"]["login"])
     elif output_mode == "json":
-        click.echo(currentUser)
+        click.echo(current_user)
     elif output_mode == "csv":
-        tabulate([currentUser], all=True, mode="csv")
+        tabulate([current_user], all=True, mode="csv")
     else:
-        tabulate([currentUser])
+        tabulate([current_user])
 
 
 @cli.command(short_help='Fetch details of a single user by ID, Login or Login Shortname.')
@@ -264,7 +264,7 @@ def get(ctx, output_file, query, attr, count, all, multiple, field, conditions, 
     # debug = kwargs["debug"]
     output_mode = kwargs["output"]
 
-    userMgr = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "user")
 
     if conditions:
         p_dict = {}
@@ -279,9 +279,9 @@ def get(ctx, output_file, query, attr, count, all, multiple, field, conditions, 
                 val = components[1]
                 p_dict[key] = val
         else:
-            condn_list = query.split(",")
-            for condn in condn_list:
-                components = condn.split(":")
+            condition_list = query.split(",")
+            for condition in condition_list:
+                components = condition.split(":")
                 if len(components) != 2:
                     raise click.ClickException("Invalid condition. Use `key1:value1[,key2:value2,...]` format.")
                 key = components[0]
@@ -291,7 +291,7 @@ def get(ctx, output_file, query, attr, count, all, multiple, field, conditions, 
                 criteria = criteria + f"{key} sw \"{val}\""
                 criteria = criteria + " and "
             criteria = criteria[:-5]
-        users_list = userMgr.getUsers(search=criteria, attr=attr, threshold=count, deepSearch=p_dict)
+        users_list = user_manager.getUsers(search=criteria, attr=attr, threshold=count, deepSearch=p_dict)
     elif multiple:
         if field in ["id", "status", "type.id"]:
             search = field
@@ -303,10 +303,10 @@ def get(ctx, output_file, query, attr, count, all, multiple, field, conditions, 
             criteria = criteria + f"{search} sw \"{key}\""
             criteria = criteria + " or "
         criteria = criteria[:-4]
-        users_list = userMgr.getUsers(search=criteria, attr=attr, threshold=count)
+        users_list = user_manager.getUsers(search=criteria, attr=attr, threshold=count)
     else:
         key = query
-        user = userMgr.getUser(key, attr=attr)
+        user = user_manager.getUser(key, attr=attr)
         users_list = [user]
 
     if(output_file):
@@ -345,7 +345,7 @@ def find(ctx, output_file, all, query, filter, search, attr, count, pattern, **k
     debug = kwargs["debug"]
     output_mode = kwargs["output"]
 
-    userMgr = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "user")
     try:
         p_dict = {}
         if pattern:
@@ -358,7 +358,7 @@ def find(ctx, output_file, all, query, filter, search, attr, count, pattern, **k
                 val = components[1]
                 p_dict[key] = val
 
-        users_list = userMgr.getUsers(query=query, filter=filter, search=search, attr=attr, threshold=count, deepSearch=p_dict)
+        users_list = user_manager.getUsers(query=query, filter=filter, search=search, attr=attr, threshold=count, deepSearch=p_dict)
     except ServiceException as ex:
         click.echo(traceback.format_exc()) if debug else click.echo(f"Error: {ex.info}")
         click.echo()
@@ -406,10 +406,10 @@ def deactivate(ctx, query, confirm, notify, field, prefix, file, conditions, pat
     failure = []
     debug = kwargs["debug"]
 
-    userMgr = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "user")
 
     try:
-        targets = _retrieve_target_ids(userMgr,
+        targets = _retrieve_target_ids(user_manager,
                                        query=query,
                                        operation="deactivate",
                                        field=field,
@@ -429,29 +429,29 @@ def deactivate(ctx, query, confirm, notify, field, prefix, file, conditions, pat
             sys.exit(0)
 
         if confirm or click.confirm(f"{len(targets)} user(s) are going to be deactivated. Proceed?"):
-            result = userMgr.deactivateUsers(targets, notify=notify)
+            result = user_manager.deactivateUsers(targets, notify=notify)
             success = result["success"]
             failure = result["failure"]
             datestr = datetime.now().strftime("%Y%m%d-%H%M%S")
 
             click.echo(f"{len(success)} user(s) successfully deactivated.")
             if len(success) > 0:
-                successFile = "okt_user_deactivate_success_" + datestr + ".txt"
-                with open(successFile, 'w') as outfile:
+                success_file = "okt_user_deactivate_success_" + datestr + ".txt"
+                with open(success_file, 'w') as outfile:
                     json.dump(success, outfile)
             if len(failure) > 0:
                 click.echo(f"Deactivation failed for {len(failure)} user(s).")
-                failureFile = "okt_user_deactivate_failed_" + datestr + ".txt"
-                with open(failureFile, 'w') as outfile:
+                failure_file = "okt_user_deactivate_failed_" + datestr + ".txt"
+                with open(failure_file, 'w') as outfile:
                     json.dump(failure, outfile)
 
             if debug:
                 errors = result["errors"]
                 if len(errors) > 0:
-                    errorFile = "okt_errors_user_deactivate_" + datestr + ".log"
-                    with open(errorFile, 'w') as outfile:
+                    error_file = "okt_errors_user_deactivate_" + datestr + ".log"
+                    with open(error_file, 'w') as outfile:
                         json.dump(errors, outfile)
-                        click.echo(f"Error information saved to {errorFile}")
+                        click.echo(f"Error information saved to {error_file}")
         else:
             click.echo("Cancelled.")
 
@@ -479,10 +479,10 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
     failure = []
     debug = kwargs["debug"]
 
-    userMgr = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "user")
 
     try:
-        deactivate_targets = _retrieve_target_ids(userMgr,
+        deactivate_targets = _retrieve_target_ids(user_manager,
                                                   query=query,
                                                   operation="deactivate",
                                                   field=field,
@@ -490,7 +490,7 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
                                                   file=file,
                                                   conditions=conditions,
                                                   pattern=pattern)
-        delete_targets = _retrieve_target_ids(userMgr,
+        delete_targets = _retrieve_target_ids(user_manager,
                                               query=query,
                                               operation="delete",
                                               field=field,
@@ -512,31 +512,31 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
 
         if confirm or click.confirm(f"{len(targets)} user(s) are going to be deleted. Proceed?"):
             result = None
-            deactivate_result = userMgr.deactivateUsers(deactivate_targets)
+            deactivate_result = user_manager.deactivateUsers(deactivate_targets)
             deactivate_success = deactivate_result["success"]
             deactivate_failure = deactivate_result["failure"]
             datestr = datetime.now().strftime("%Y%m%d-%H%M%S")
 
             final_targets = list(set(deactivate_success + delete_targets))
             if len(final_targets) > 0:
-                result = userMgr.deleteUsers(final_targets, notify=notify)
+                result = user_manager.deleteUsers(final_targets, notify=notify)
                 success = result["success"]
                 failure = result["failure"]
                 click.echo(f"{len(success)} user(s) successfully deleted.")
                 if len(success) > 0:
-                    successFile = "okt_user_delete_success_" + datestr + ".txt"
-                    with open(successFile, 'w') as outfile:
+                    success_file = "okt_user_delete_success_" + datestr + ".txt"
+                    with open(success_file, 'w') as outfile:
                         json.dump(success, outfile)
                 if len(failure) > 0:
                     click.echo(f"Deletion failed for {len(failure)} user(s).")
-                    failureFile = "okt_user_delete_failed_" + datestr + ".txt"
-                    with open(failureFile, 'w') as outfile:
+                    failure_file = "okt_user_delete_failed_" + datestr + ".txt"
+                    with open(failure_file, 'w') as outfile:
                         json.dump(failure, outfile)
 
             if len(deactivate_failure) > 0:
                 click.echo(f"Deactivation failed for {len(deactivate_failure)} user(s).")
-                failureFile = "okt_user_delete_deactivation_failed_" + datestr + ".txt"
-                with open(failureFile, 'w') as outfile:
+                failure_file = "okt_user_delete_deactivation_failed_" + datestr + ".txt"
+                with open(failure_file, 'w') as outfile:
                     json.dump(deactivate_failure, outfile)
 
             if debug:
@@ -546,10 +546,10 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
                 if result:
                     errors = errors + result["errors"]
                 if len(errors) > 0:
-                    errorFile = "okt_errors_user_delete_" + datestr + ".log"
-                    with open(errorFile, 'w') as outfile:
+                    error_file = "okt_errors_user_delete_" + datestr + ".log"
+                    with open(error_file, 'w') as outfile:
                         json.dump(errors, outfile)
-                        click.echo(f"Error information saved to {errorFile}")
+                        click.echo(f"Error information saved to {error_file}")
         else:
             click.echo("Cancelled.")
 
@@ -563,7 +563,7 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
 @click.option('--no-password', is_flag=True, help='Create users without password', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "import_password", "input_file"])  # noqa: E501
 @click.option('--import-password', is_flag=True, help='Create password import hook enabled users', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password", "input_file"])  # noqa: E501
 @click.option('--activate', is_flag=True, help='Create users without password')
-@click.option('--file', '-f', 'input_file', help='Input file', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password", "import_password", "multiple"])
+@click.option('--file', '-f', 'input_file', help='Input file', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password", "import_password", "multiple"])  # noqa: E501
 @click.option('--mode', default='json', help='User paylod format (JSON or CSV)', cls=DependentOption, dependent_on=["input_file"])
 @click.option('--csv-options', help='Create user options', cls=DependentOption, dependent_on=["mode"])
 @click.pass_context
@@ -597,8 +597,8 @@ def create(ctx, multiple, default_password, no_password, import_password, activa
                 options[key] = val
             elif key in ["no-password", "import-password", "hashed-password", "hash-salt"]:
                 options[key] = True if val.lower() == 'true' else False
-    userMgr = get_handler(ctx, kwargs["profile"], "user")
-    result = userMgr.createUsers(inputs=user_payload, file=input_file, mode=mode, options=options, activate=activate and (not import_password))
+    user_manager = get_handler(ctx, kwargs["profile"], "user")
+    result = user_manager.createUsers(inputs=user_payload, file=input_file, mode=mode, options=options, activate=activate and (not import_password))
 
     success = result["success"]
     failure = result["failure"]
@@ -607,8 +607,8 @@ def create(ctx, multiple, default_password, no_password, import_password, activa
     click.echo(f"{len(success)} user(s) successfully created.")
 
     if len(success) > 0:
-        successFile = "okt_user_create_success_" + datestr + ".txt"
-        with open(successFile, 'w') as outfile:
+        success_file = "okt_user_create_success_" + datestr + ".txt"
+        with open(success_file, 'w') as outfile:
             json.dump(success, outfile)
 
     if len(failure) > 0:
@@ -620,14 +620,14 @@ def create(ctx, multiple, default_password, no_password, import_password, activa
             errors = errors + result["errors"]
 
             if len(failure) > 0:
-                failureFile = "okt_user_create_failed_" + datestr + ".txt"
-                with open(failureFile, 'w') as outfile:
+                failure_file = "okt_user_create_failed_" + datestr + ".txt"
+                with open(failure_file, 'w') as outfile:
                     json.dump(failure, outfile)
 
             if len(errors) > 0:
-                errorFile = "okt_errors_user_create_" + datestr + ".log"
-                with open(errorFile, 'w') as outfile:
+                error_file = "okt_errors_user_create_" + datestr + ".log"
+                with open(error_file, 'w') as outfile:
                     json.dump(errors, outfile)
-                    click.echo(f"Error information saved to {errorFile}")
+                    click.echo(f"Error information saved to {error_file}")
 
     click.echo()
