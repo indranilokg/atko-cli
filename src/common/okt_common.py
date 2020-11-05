@@ -3,6 +3,8 @@ import webbrowser
 import socket
 import json
 import os
+import functools
+import time
 from json.decoder import JSONDecodeError
 from urllib import parse
 from wsgiref import simple_server
@@ -73,6 +75,19 @@ class DependentOption(Option):
             opts,
             args
         )
+
+
+def timer(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        value = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        run_time = end_time - start_time
+        print("Finished {} in {} secs".format(repr(func.__name__), round(run_time, 3)))
+        return value
+
+    return wrapper
 
 
 def _get_server(app):

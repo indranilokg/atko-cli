@@ -26,33 +26,51 @@ def to_users_json_from_csv(file, options={}):
             list_of_users = list(map(lambda x: {"profile": x, "credentials": {
                 "password": {"value": options["default-password"]}}}, records))
             fallThrough = False
-        elif "no-password" in selectors:
+        elif options.get("no-password", False):
             df = df.drop(["password"], axis=1, errors='ignore')
             records = json.loads(df.to_json(orient="records"))
             list_of_users = list(
                 map(lambda x: {"profile": x}, records))
             fallThrough = False
-        elif "import-password" in selectors:
+        elif options.get("import-password", False):
             df = df.drop(["password"], axis=1, errors='ignore')
             records = json.loads(df.to_json(orient="records"))
             list_of_users = list(map(lambda x: {"profile": x, "credentials": {
                 "password": {"hook": {"type": "default"}}}}, records))
             fallThrough = False
-        elif ("hashed-password" in selectors) and ("password" in df.columns):
+        elif (options.get("hashed-password", False) and ("password" in df.columns)):
             records = json.loads(df.to_json(orient="records"))
-            list_of_users = list(map(lambda x: {"profile": x,
-                                                "credentials": {
-                                                    "password": {
-                                                        "hash": {
-                                                            "algorithm": "BCRYPT",
-                                                            "workFactor": 10,
-                                                            "salt": "rwh3vH166HCH/NT9XV5FYu",
-                                                            "value": x.pop("password")
+            algorithm = options.get("hash-algorithm", "SHA-1")
+            isSalted = options.get("hash-salt", False)
+            saltOrder = options.get("hash-salt-order", "POSTFIX")
+            if isSalted:
+                list_of_users = list(map(lambda x: {"profile": x,
+                                                    "credentials": {
+                                                        "password": {
+                                                            "hash": {
+                                                                "algorithm": algorithm,
+                                                                "workFactor": 10,
+                                                                "salt": x.pop("salt"),
+                                                                "saltOrder": saltOrder,
+                                                                "value": x.pop("password")
+                                                            }
                                                         }
                                                     }
-                                                }
-                                                },
-                                     records))
+                                                    },
+                                         records))
+            else:
+                list_of_users = list(map(lambda x: {"profile": x,
+                                                    "credentials": {
+                                                        "password": {
+                                                            "hash": {
+                                                                "algorithm": algorithm,
+                                                                "workFactor": 10,
+                                                                "value": x.pop("password")
+                                                            }
+                                                        }
+                                                    }
+                                                    },
+                                         records))
 
             fallThrough = False
         else:
@@ -141,14 +159,12 @@ class UserMgr(OktaResourceBase):
         errors = []
 
         list_of_users = []
-        list_of_users2 = []
 
         if file is None:
             list_of_users = inputs
         else:
             if mode == "csv":
-                list_of_users2 = to_users_json_from_csv(file, options)
-                print(list_of_users2)
+                list_of_users = to_users_json_from_csv(file, options)
             else:
                 with open(file, 'r') as infile:
                     data = json.load(infile)

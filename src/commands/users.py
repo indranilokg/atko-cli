@@ -5,7 +5,7 @@ import traceback
 from datetime import datetime
 from prettytable import PrettyTable
 from oktapy.exceptions import ServiceException
-from common.okt_common import global_options, get_handler, MutuallyExclusiveOption, DependentOption
+from common.okt_common import global_options, get_handler, MutuallyExclusiveOption, DependentOption, timer
 import oktapy.manage.UserMgr as UserMgr
 from oktapy.utils import readCSV
 
@@ -225,6 +225,7 @@ def cli():
 @click.option('--attr', help='Filter with subset of attributes')
 @global_options
 @click.pass_context
+@timer
 def current(ctx, attr, **kwargs):
     """Get current user"""
 
@@ -256,6 +257,7 @@ def current(ctx, attr, **kwargs):
 @global_options
 @click.argument('query')
 @click.pass_context
+@timer
 def get(ctx, output_file, query, attr, count, all, multiple, field, conditions, pattern, **kwargs):
     """Get user"""
 
@@ -336,6 +338,7 @@ def get(ctx, output_file, query, attr, count, all, multiple, field, conditions, 
 @click.option('--pattern', '-e', help='Search based on pattern or substring. Expensive operation.')
 @global_options
 @click.pass_context
+@timer
 def find(ctx, output_file, all, query, filter, search, attr, count, pattern, **kwargs):
     """List all users. Optionally save them to a file."""
 
@@ -395,6 +398,7 @@ def find(ctx, output_file, all, query, filter, search, attr, count, pattern, **k
 @click.option('--pattern', '-e', is_flag=True, help='Search based on pattern or substring. Expensive operation.', cls=DependentOption, dependent_on=["conditions"])  # noqa: E501
 @click.argument('query')
 @click.pass_context
+@timer
 def deactivate(ctx, query, confirm, notify, field, prefix, file, conditions, pattern, **kwargs):
     """Deactivates users."""
 
@@ -465,6 +469,7 @@ def deactivate(ctx, query, confirm, notify, field, prefix, file, conditions, pat
 @click.option('--pattern', '-e', is_flag=True, help='Search based on pattern or substring. Expensive operation.', cls=DependentOption, dependent_on=["conditions"])  # noqa: E501
 @click.argument('query')
 @click.pass_context
+@timer
 def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern, **kwargs):
     """Delete users."""
 
@@ -558,15 +563,15 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
 @click.option('--no-password', is_flag=True, help='Create users without password', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "import_password", "input_file"])  # noqa: E501
 @click.option('--import-password', is_flag=True, help='Create password import hook enabled users', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password", "input_file"])  # noqa: E501
 @click.option('--activate', is_flag=True, help='Create users without password')
-@click.option('--file', '-f', 'input_file', help='Input file', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password" "multiple"])
+@click.option('--file', '-f', 'input_file', help='Input file', cls=MutuallyExclusiveOption, mutually_exclusive=["default_password", "no_password", "import_password", "multiple"])
 @click.option('--mode', default='json', help='User paylod format (JSON or CSV)', cls=DependentOption, dependent_on=["input_file"])
 @click.option('--csv-options', help='Create user options', cls=DependentOption, dependent_on=["mode"])
 @click.pass_context
+@timer
 def create(ctx, multiple, default_password, no_password, import_password, activate, input_file, mode, csv_options, **kwargs):
     """Create users."""
 
     debug = kwargs["debug"]
-    datestr = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     user_payload = []
 
@@ -588,19 +593,41 @@ def create(ctx, multiple, default_password, no_password, import_password, activa
                 raise click.ClickException("Invalid options. Use `key1:value1[,key2:value2,...]` format.")
             key = components[0]
             val = components[1]
-            if key in ["default-password", "no-password", "import-password", "hashed-password", "hash-algorithm", "hash-salt"]:
+            if key in ["default-password", "hash-algorithm", "hash-salt-order"]:
                 options[key] = val
+            elif key in ["no-password", "import-password", "hashed-password", "hash-salt"]:
+                options[key] = True if val.lower() == 'true' else False
     userMgr = get_handler(ctx, kwargs["profile"], "user")
     result = userMgr.createUsers(inputs=user_payload, file=input_file, mode=mode, options=options, activate=activate and (not import_password))
+
+    success = result["success"]
+    failure = result["failure"]
+    datestr = datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    click.echo(f"{len(success)} user(s) successfully created.")
+
+    if len(success) > 0:
+        successFile = "okt_user_create_success_" + datestr + ".txt"
+        with open(successFile, 'w') as outfile:
+            json.dump(success, outfile)
+
+    if len(failure) > 0:
+        click.echo(f"Creation failed for {len(failure)} user(s).")
 
     if debug:
         errors = []
         if result:
             errors = errors + result["errors"]
-        if len(errors) > 0:
-            errorFile = "okt_errors_user_create_" + datestr + ".log"
-            with open(errorFile, 'w') as outfile:
-                json.dump(errors, outfile)
-                click.echo(f"Error information saved to {errorFile}")
 
-    print(result)
+            if len(failure) > 0:
+                failureFile = "okt_user_create_failed_" + datestr + ".txt"
+                with open(failureFile, 'w') as outfile:
+                    json.dump(failure, outfile)
+
+            if len(errors) > 0:
+                errorFile = "okt_errors_user_create_" + datestr + ".log"
+                with open(errorFile, 'w') as outfile:
+                    json.dump(errors, outfile)
+                    click.echo(f"Error information saved to {errorFile}")
+
+    click.echo()
