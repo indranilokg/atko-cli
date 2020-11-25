@@ -3,6 +3,7 @@ from oktapy.oktaoauth import OktaOAuth
 
 from oktapy.exceptions import ConfigurationException
 from oktapy.manage.UserMgr import UserMgr
+from oktapy.manage.GroupMgr import GroupMgr
 
 
 class Okta(object):
@@ -83,3 +84,11 @@ class Okta(object):
         """
 
         return UserMgr(client=self._client)
+
+    def GroupMgr(self):
+        """Instantiates and returns Okta group manager object.
+
+        Group manager is responsible for managing group specific operations.
+        """
+
+        return GroupMgr(client=self._client)

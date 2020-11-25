@@ -245,7 +245,7 @@ def current(ctx, attr, **kwargs):
         tabulate([currentUser])
 
 
-@cli.command(short_help='Fetch details of a single user by ID, Login or Login Shortname.')
+@cli.command(short_help='Get users based on variety of conditions.')
 @click.option('--file', 'output_file', type=click.File(mode="w"), help='Output file')
 @click.option('--attr', help='Filter with subset of attributes')
 @click.option('--count', type=int, default=0, help='Maximum number of records to return')

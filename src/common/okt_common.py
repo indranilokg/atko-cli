@@ -287,6 +287,8 @@ def get_handler(ctx, profilename, resource):
     provider = get_okta_provider(ctx, profilename)
     if resource == "user":
         handler = provider.UserMgr()
+    elif resource == "group":
+        handler = provider.GroupMgr()
     if mode == "oauth":
         _authenticate_handler(profilename, profile, handler, resource, ctx.obj.get("cache_file"))
     return handler
