@@ -1,6 +1,7 @@
 import click
-import json
 import configparser
+import json
+
 from json.decoder import JSONDecodeError
 
 
@@ -15,9 +16,9 @@ def cli(ctx, profile):
             profile = "DEFAULT"
 
         config_file = ctx.obj.get("config_file")
-        creds_file = ctx.obj.get("creds_file")
+        credential_file = ctx.obj.get("credential_file")
 
-        _createProfile(profile, config_file, creds_file)
+        _create_profile(profile, config_file, credential_file)
 
 
 @cli.command()
@@ -27,7 +28,7 @@ def list(ctx, verbose):
     """List profile names."""
 
     config = ctx.obj.get("config")
-    creds = ctx.obj.get("creds")
+    credentials = ctx.obj.get("credentials")
 
     for profile in config:
         if(verbose):
@@ -35,8 +36,8 @@ def list(ctx, verbose):
             click.echo("_________________________")
             for key in config[profile]:
                 click.echo(f"{key}: {config[profile][key]}")
-            for key in creds[profile]:
-                click.echo(f"{key}: {creds[profile][key]}")
+            for key in credentials[profile]:
+                click.echo(f"{key}: {credentials[profile][key]}")
             click.echo("_________________________")
             click.echo("                         ")
             click.echo("                         ")
@@ -51,12 +52,12 @@ def show(ctx, profile):
     """Show current profile."""
 
     config = ctx.obj.get("config")
-    creds = ctx.obj.get("creds")
+    credentials = ctx.obj.get("credentials")
     try:
         for key in config[profile]:
             click.echo(f"{key}: {config[profile][key]}")
-        for key in creds[profile]:
-            click.echo(f"{key}: {creds[profile][key]}")
+        for key in credentials[profile]:
+            click.echo(f"{key}: {credentials[profile][key]}")
     except KeyError as err:
         raise click.ClickException("Enter a valid profile name. Run `atko config list` to find the configured profiles.") from err
 
@@ -68,7 +69,7 @@ def remove(ctx, profile):
     """Remove profile."""
 
     config_file = ctx.obj.get("config_file")
-    creds_file = ctx.obj.get("creds_file")
+    credential_file = ctx.obj.get("credential_file")
     cache_file = ctx.obj.get("cache_file")
 
     config = configparser.ConfigParser()
@@ -77,23 +78,23 @@ def remove(ctx, profile):
     if not config.has_section(profile):
         raise click.ClickException("Enter a valid profile name. Run `atko config list` to find the configured profiles.")
 
-    creds = configparser.ConfigParser()
-    creds.read(creds_file)
+    credential = configparser.ConfigParser()
+    credential.read(credential_file)
 
     with open(cache_file, 'r') as infile:
-        oauthCache = json.load(infile)
+        oauth_cache = json.load(infile)
 
     config.remove_section(profile)
     with open(config_file, "w") as cfgfile:
         config.write(cfgfile)
 
-    creds.remove_section(profile)
-    with open(creds_file, "w") as credsfile:
-        creds.write(credsfile)
+    credential.remove_section(profile)
+    with open(credential_file, "w") as credsfile:
+        credential.write(credsfile)
 
-    _removeCacheEntry(oauthCache, profile)
+    _remove_cache_entry(oauth_cache, profile)
     with open(cache_file, 'w') as outfile:
-        json.dump(oauthCache, outfile)
+        json.dump(oauth_cache, outfile)
 
     click.echo(f"Profile {profile} removed.")
 
@@ -106,73 +107,73 @@ def remove(ctx, profile):
 def cache(ctx, clear, remove, key):
     """Access OAuth cache."""
 
-    cachefile = ctx.obj.get("cache_file")
+    cache_file = ctx.obj.get("cache_file")
     try:
-        with open(cachefile, 'r') as infile:
-            oauthCache = json.load(infile)
+        with open(cache_file, 'r') as infile:
+            oauth_cache = json.load(infile)
         if clear:
             if click.confirm("Clear the OAuth cache?"):
-                with open(cachefile, 'w') as outfile:
-                    oauthCache = json.dump({}, outfile)
+                with open(cache_file, 'w') as outfile:
+                    oauth_cache = json.dump({}, outfile)
                 click.echo("Cache cleared")
         elif remove is not None:
             if click.confirm("Remove the cache entry?"):
-                _removeCacheEntry(oauthCache, remove)
-                with open(cachefile, 'w') as outfile:
-                    json.dump(oauthCache, outfile)
+                _remove_cache_entry(oauth_cache, remove)
+                with open(cache_file, 'w') as outfile:
+                    json.dump(oauth_cache, outfile)
         elif key is not None:
-            entry = _getCacheEntry(oauthCache, key)
+            entry = _get_cache_entry(oauth_cache, key)
             click.echo(json.dumps(entry, indent=4))
         else:
-            for cache in oauthCache:
+            for cache in oauth_cache:
                 click.echo(cache)
     except JSONDecodeError as err:
         raise click.ClickException("Could not access the cache file.") from err
 
 
-def _getCacheEntry(oauthCache, key):
+def _get_cache_entry(oauth_cache, key):
     entry = {}
     lst = key.split(":")
     profile = lst[0]
     resource = None
     if (len(lst) == 1):
-        entry = oauthCache.get(profile, {})
+        entry = oauth_cache.get(profile, {})
     elif (len(lst) == 2):
         resource = lst[1]
-        entry = oauthCache.get(profile, {}).get(resource, {})
+        entry = oauth_cache.get(profile, {}).get(resource, {})
     elif (len(lst) == 3):
         resource = lst[1]
         token_type = lst[2]
-        entry = oauthCache.get(profile, {}).get(resource, {}).get(token_type, {})
+        entry = oauth_cache.get(profile, {}).get(resource, {}).get(token_type, {})
     else:
         raise click.ClickException("Invalid key.")
     return entry
 
 
-def _removeCacheEntry(oauthCache, key):
+def _remove_cache_entry(oauth_cache, key):
     entry = {}
     lst = key.split(":")
     profile = lst[0]
     resource = None
     if (len(lst) == 1):
-        oauthCache.pop(profile, {})
+        oauth_cache.pop(profile, {})
     elif (len(lst) == 2):
         resource = lst[1]
-        entry = oauthCache.get(profile, {}).pop(resource, {})
+        entry = oauth_cache.get(profile, {}).pop(resource, {})
     elif (len(lst) == 3):
         resource = lst[1]
         token_type = lst[2]
-        entry = oauthCache.get(profile, {}).get(resource, {}).pop(token_type, {})
+        entry = oauth_cache.get(profile, {}).get(resource, {}).pop(token_type, {})
     else:
         raise click.ClickException("Invalid key.")
     return entry
 
 
-def _createProfile(profile, config_file, creds_file):
+def _create_profile(profile, config_file, credential_file):
     config = configparser.ConfigParser()
     config.read(config_file)
-    creds = configparser.ConfigParser()
-    creds.read(creds_file)
+    credentials = configparser.ConfigParser()
+    credentials.read(credential_file)
 
     base_url = click.prompt(
         "Enter Okta Org URL",
@@ -191,7 +192,7 @@ def _createProfile(profile, config_file, creds_file):
             "grant_type": ""
         }
 
-        creds[profile] = _getTokenCreds()
+        credentials[profile] = _get_token_credentials()
 
     elif api_mode == "oauth":
         grant_type = click.prompt(
@@ -205,24 +206,24 @@ def _createProfile(profile, config_file, creds_file):
             "grant_type": grant_type
         }
 
-        creds[profile] = _getOAuthCreds(grant_type)
+        credentials[profile] = _get_oauth_credentials(grant_type)
     else:
         raise click.ClickException(f"Invalid mode {api_mode}")
 
-    with open(config_file, "w") as cfgfile:
-        config.write(cfgfile)
+    with open(config_file, "w") as _config_file:
+        config.write(_config_file)
 
-    with open(creds_file, "w") as credsfile:
-        creds.write(credsfile)
+    with open(credential_file, "w") as _credentials_file:
+        credentials.write(_credentials_file)
 
 
-def _getTokenCreds():
+def _get_token_credentials():
     api_token = click.prompt(
         "Enter API Token",
         default=""
     )
 
-    credsObject = {
+    credentials_object = {
         "api_token": api_token,
         "client_id": "",
         "client_secret": "",
@@ -232,27 +233,33 @@ def _getTokenCreds():
         "user_password": ""
     }
 
-    return credsObject
+    return credentials_object
 
 
-def _getOAuthCreds(grant_type):
-    credsObject = {}
+def _get_oauth_credentials(grant_type):
+    CLICK_PROMPT_OAUTH_CLIENT_ID = "Enter OAuth Client ID"
+    CLICK_PROMPT_OAUTH_CLIENT_SECRET = "Enter OAuth Client Secret"
+    CLICK_PROMPT_OAUTH_REDIRECT_URI = "Enter Redirect URI"
+    CLICK_PROMPT_OAUTH_JWK_FILE = "Enter JWK file"
+
+    credentials_object = {}
+
     if grant_type == "password":
         client_id = click.prompt(
-            "Enter OAuth Client ID",
+            CLICK_PROMPT_OAUTH_CLIENT_ID,
             default=""
         )
 
         client_secret = click.prompt(
-            "Enter Client Secret",
-            default="password"
+            CLICK_PROMPT_OAUTH_CLIENT_SECRET,
+            default=""
         )
 
         user_id = click.prompt("Enter Okta User ID")
 
-        user_password = click.prompt("Enter Password", hide_input=True)
+        user_password = click.prompt("Enter Okta User Password", hide_input=True)
 
-        credsObject = {
+        credentials_object = {
             "client_id": client_id,
             "client_secret": client_secret,
             "api_token": "",
@@ -263,16 +270,16 @@ def _getOAuthCreds(grant_type):
         }
     elif grant_type == "implicit":
         client_id = click.prompt(
-            "Enter OAuth Client ID",
+            CLICK_PROMPT_OAUTH_CLIENT_ID,
             default=""
         )
 
         redirect_uri = click.prompt(
-            "Enter Redirect URI",
+            CLICK_PROMPT_OAUTH_REDIRECT_URI,
             default="http://127.0.0.1:12345"
         )
 
-        credsObject = {
+        credentials_object = {
             "client_id": client_id,
             "redirect_uri": redirect_uri,
             "api_token": "",
@@ -283,21 +290,21 @@ def _getOAuthCreds(grant_type):
         }
     elif grant_type == "authorization_code":
         client_id = click.prompt(
-            "Enter OAuth Client ID",
+            CLICK_PROMPT_OAUTH_CLIENT_ID,
             default=""
         )
 
         client_secret = click.prompt(
-            "Enter Client Secret",
+            CLICK_PROMPT_OAUTH_CLIENT_SECRET,
             default=""
         )
 
         redirect_uri = click.prompt(
-            "Enter Redirect URI",
+            CLICK_PROMPT_OAUTH_REDIRECT_URI,
             default="http://127.0.0.1:12345"
         )
 
-        credsObject = {
+        credentials_object = {
             "client_id": client_id,
             "client_secret": client_secret,
             "redirect_uri": redirect_uri,
@@ -308,16 +315,16 @@ def _getOAuthCreds(grant_type):
         }
     elif grant_type == "pkce":
         client_id = click.prompt(
-            "Enter OAuth Client ID",
+            CLICK_PROMPT_OAUTH_CLIENT_ID,
             default=""
         )
 
         redirect_uri = click.prompt(
-            "Enter Redirect URI",
+            CLICK_PROMPT_OAUTH_REDIRECT_URI,
             default="http://127.0.0.1:12345"
         )
 
-        credsObject = {
+        credentials_object = {
             "client_id": client_id,
             "redirect_uri": redirect_uri,
             "api_token": "",
@@ -328,18 +335,19 @@ def _getOAuthCreds(grant_type):
         }
     elif grant_type == "client_credentials":
         client_id = click.prompt(
-            "Enter OAuth Client ID",
+            CLICK_PROMPT_OAUTH_CLIENT_ID,
             default=""
         )
 
-        jwkFile = click.prompt(
-            "Enter JWK file"
+        jwk_file = click.prompt(
+            CLICK_PROMPT_OAUTH_JWK_FILE,
+            default=""
         )
 
-        with open(jwkFile, 'r') as f:
+        with open(jwk_file, 'r') as f:
             jwk = json.load(f)
 
-        credsObject = {
+        credentials_object = {
             "client_id": client_id,
             "jwk": jwk,
             "api_token": "",
@@ -350,4 +358,4 @@ def _getOAuthCreds(grant_type):
         }
     else:
         raise click.ClickException(f"Invalid oauth grant type {grant_type}")
-    return credsObject
+    return credentials_object
