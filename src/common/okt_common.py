@@ -17,8 +17,8 @@ _global_options = [
     click.option('--output', '-o', default="stdout", help='Output format')
 ]
 
-# //TODO: Rename file to core.py
 
+# //TODO: Rename file to core.py
 class MutuallyExclusiveOption(Option):
     def __init__(self, *args, **kwargs):
         self.mutually_exclusive = set(kwargs.pop('mutually_exclusive', []))
