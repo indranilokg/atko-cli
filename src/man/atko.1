@@ -1,0 +1,138 @@
+.TH ATKO 1 "March 2024" "atko-cli" "User Commands"
+.SH NAME
+atko \- Okta CLI tool for managing users, groups, and configurations
+.SH SYNOPSIS
+.B atko
+[\fIOPTIONS\fR] \fICOMMAND\fR [\fIARGS\fR]...
+.SH DESCRIPTION
+.B atko
+is a command-line interface tool for managing Okta resources including users, groups, and configurations. It provides a simple and efficient way to interact with Okta's API.
+.SH OPTIONS
+.TP
+\fB\-\-help\fR
+Show help message and exit
+.TP
+\fB\-\-version\fR
+Show version and exit
+.TP
+\fB\-\-profile\fR \fIPROFILE\fR
+Specify the Okta profile to use (default: default)
+.TP
+\fB\-\-debug\fR
+Enable debug mode
+.TP
+\fB\-\-verbose\fR, \fB\-v\fR
+Show API calls as cURL commands
+.SH COMMANDS
+.TP
+\fBusers\fR
+Manage Okta users
+.RS
+.TP
+\fBlist\fR
+List users
+.TP
+\fBget\fR \fIUSER_ID\fR
+Get user details
+.TP
+\fBcreate\fR
+Create a new user
+.TP
+\fBdelete\fR \fIUSER_ID\fR
+Delete a user
+.TP
+\fBactivate\fR \fIUSER_ID\fR
+Activate a user
+.TP
+\fBdeactivate\fR \fIUSER_ID\fR
+Deactivate a user
+.TP
+\fBreset-password\fR \fIUSER_ID\fR
+Reset user password
+.TP
+\fBunlock\fR \fIUSER_ID\fR
+Unlock a user
+.TP
+\fBgroups\fR \fIUSER_ID\fR
+List groups a user belongs to
+.RE
+.TP
+\fBgroups\fR
+Manage Okta groups
+.RS
+.TP
+\fBlist\fR
+List groups
+.TP
+\fBget\fR \fIGROUP_ID\fR
+Get group details
+.TP
+\fBcreate\fR
+Create a new group
+.TP
+\fBdelete\fR \fIGROUP_ID\fR
+Delete a group
+.TP
+\fBusers\fR \fIGROUP_ID\fR
+List users in a group
+.TP
+\fBusers add\fR \fIGROUP_ID\fR \fIUSER_ID\fR
+Add a user to a group
+.TP
+\fBusers remove\fR \fIGROUP_ID\fR \fIUSER_ID\fR
+Remove a user from a group
+.RE
+.TP
+\fBconfig\fR
+Manage Okta configurations
+.RS
+.TP
+\fBlist\fR
+List all configured profiles
+.TP
+\fBget\fR \fIPROFILE\fR
+Get configuration details for a profile
+.TP
+\fBset\fR \fIPROFILE\fR \fIKEY\fR \fIVALUE\fR
+Set a configuration value for a profile
+.TP
+\fBdelete\fR \fIPROFILE\fR
+Delete a profile configuration
+.RE
+.SH EXAMPLES
+.TP
+List all users:
+.B atko users list
+.TP
+Get user details:
+.B atko users get 00u6cb1uagWxZpNdf1d7
+.TP
+List groups:
+.B atko groups list
+.TP
+Add user to group:
+.B atko groups users add 00glq9khp9u2GxcOx1d7 00u6cb1uagWxZpNdf1d7
+.TP
+List configurations:
+.B atko config list
+.TP
+List groups with API calls:
+.B atko groups list --verbose
+.SH FILES
+.TP
+\fI~/.atko/config\fR
+Configuration file containing Okta profiles and credentials
+.SH ENVIRONMENT
+.TP
+\fBOKTA_PROFILE\fR
+Default Okta profile to use if not specified with \fB\-\-profile\fR
+.SH SEE ALSO
+.BR okta (1),
+.BR curl (1)
+.SH AUTHOR
+Written by Indranil Jha
+.SH BUGS
+Report bugs to the issue tracker at https://github.com/indraniljha/atko-cli/issues
+.SH COPYRIGHT
+Copyright © 2024 Indranil Jha
+This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 

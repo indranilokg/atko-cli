@@ -231,7 +231,7 @@ def current(ctx, attr, **kwargs):
 
     output_mode = kwargs["output"]
 
-    user_manager = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "users")
     current_user = user_manager.getCurrentUser(attr=attr)
     if output_mode == "id":
         click.echo(current_user["id"])
@@ -264,7 +264,7 @@ def get(ctx, output_file, query, attr, count, all, multiple, field, conditions, 
     # debug = kwargs["debug"]
     output_mode = kwargs["output"]
 
-    user_manager = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "users")
 
     if conditions:
         p_dict = {}
@@ -345,7 +345,7 @@ def find(ctx, output_file, all, query, filter, search, attr, count, pattern, **k
     debug = kwargs["debug"]
     output_mode = kwargs["output"]
 
-    user_manager = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "users")
     try:
         p_dict = {}
         if pattern:
@@ -406,7 +406,7 @@ def deactivate(ctx, query, confirm, notify, field, prefix, file, conditions, pat
     failure = []
     debug = kwargs["debug"]
 
-    user_manager = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "users")
 
     try:
         targets = _retrieve_target_ids(user_manager,
@@ -479,7 +479,7 @@ def delete(ctx, query, confirm, notify, field, prefix, file, conditions, pattern
     failure = []
     debug = kwargs["debug"]
 
-    user_manager = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "users")
 
     try:
         deactivate_targets = _retrieve_target_ids(user_manager,
@@ -597,7 +597,7 @@ def create(ctx, multiple, default_password, no_password, import_password, activa
                 options[key] = val
             elif key in ["no-password", "import-password", "hashed-password", "hash-salt"]:
                 options[key] = True if val.lower() == 'true' else False
-    user_manager = get_handler(ctx, kwargs["profile"], "user")
+    user_manager = get_handler(ctx, kwargs["profile"], "users")
     result = user_manager.createUsers(inputs=user_payload, file=input_file, mode=mode, options=options, activate=activate and (not import_password))
 
     success = result["success"]

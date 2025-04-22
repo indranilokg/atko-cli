@@ -1,22 +1,22 @@
 from oktapy.oktaapitoken import OktaAPIToken
-from oktapy.oktaoauth import OktaOAuth
 
 from oktapy.exceptions import ConfigurationException
 from oktapy.manage.UserMgr import UserMgr
+from oktapy.manage.GroupMgr import GroupMgr
 
 
 class Okta(object):
     """Top level Okta resource management class.
 
-    This is the top level class that provides API intereface to manage Okta resources.
-    It supports API token or OAuth for Okta modes. Default is API token mode.
+    This is the top level class that provides API interface to manage Okta resources.
+    It uses API token mode for authentication.
 
     Attributes
     ----------
     _baseurl : str
             Base URL of the Okta org. Example - https://example.okta.com
     _client : object
-            Associated Okta client object. Can be an instance of OktaAPIToken or OktaOAuth class.
+            Associated Okta client object. Instance of OktaAPIToken class.
 
     Methods
     -------
@@ -28,52 +28,35 @@ class Okta(object):
 
     UserMgr()
         Instantiates and returns Okta user manager object
+
+    GroupMgr()
+        Instantiates and returns Okta group manager object
     """
 
-    def __init__(self, baseurl, mode='apitoken', token=None, oauthConfig=None):
+    def __init__(self, baseurl, token=None, verbose=False):
         """
-
-        Instantiates and associates appropriate Okta client object based on the mode.
-        If the mode is `apioken` associates an OktaAPIToken object. If the mode is `oauth`
-        then an OktaOAuth client object is associated.
+        Instantiates and associates an OktaAPIToken client object.
 
         Parameters
         ----------
         baseurl : str
             Base URL of the Okta org. Example - https://example.okta.com
-        mode : str
-            Management modes. Allowed value - `apitoken`, `oauth` (default is `apitoken`).
         token : str
-            API token value for the org. Manadatory if the mode is `apitoken` (default is None).
-        oauthConfig : object
-            OAuth for Okta configuration information. Manadatory if the mode is `oauth` (default is None).
-
-        Raises
-        ------
-        ConfigurationException
-            If invalid mode is passed. Valid values are - `apitoken`, `oauth`
+            API token value for the org.
+        verbose : bool
+            Flag to enable verbose API calls
         """
-
         self._baseurl = baseurl
-        if mode == 'apitoken':
-            self._client = OktaAPIToken(baseurl, token)
-        elif mode == 'oauth':
-            self._client = OktaOAuth(baseurl, oauthConfig)
-        else:
-            raise ConfigurationException(f"{mode}: Unsupported SDK mode. Supported modes are - apitoken, oauth")
+        self._token = token
+        self._verbose = verbose
+        self._client = OktaAPIToken(baseurl, token=token, verbose=verbose)
 
     def client(self):
-        """Returns the associated Okta client object.
-
-        If the mode is `apitoken` returns the associated OktaAPIToken object.
-        If the mode is 'oauth` then the associated OktaOAuth client object is returned.
-        """
-
+        """Returns the associated OktaAPIToken client object."""
         return self._client
 
     def baseUrl(self):
         """Returns the base URL of the target Okta org. Example - https://example.okta.com"""
-
         return self._baseurl
 
     def UserMgr(self):
@@ -81,5 +64,11 @@ class Okta(object):
 
         User manager is responsible for managing user specific operations.
         """
-
         return UserMgr(client=self._client)
+
+    def GroupMgr(self):
+        """Instantiates and returns Okta group manager object.
+
+        Group manager is responsible for managing group specific operations.
+        """
+        return GroupMgr(client=self._client)

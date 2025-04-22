@@ -65,6 +65,45 @@ Download packaged binaries from the [releases page][].
 
 See here on how to [build Atko CLI from source](/docs/source.md). (Not Implemented)
 
+### Local Development and Testing
+
+To test the CLI locally during development:
+
+1. Create and activate a virtual environment named "localtest":
+```bash
+# Create virtual environment
+python -m venv localtest
+
+# Activate the environment
+# On macOS/Linux:
+source localtest/bin/activate
+# On Windows:
+localtest\Scripts\activate
+```
+
+2. Install the package in editable mode:
+```bash
+pip install -e .
+```
+
+This installation method allows you to modify the source code and test changes immediately without reinstalling the package. Any changes you make to the code will be reflected when you run the `atko` command.
+
+3. Test the CLI:
+```bash
+# Verify the installation
+atko --help
+
+# Try specific commands
+atko config --help
+atko users --help
+```
+
+4. When you're done testing, deactivate the virtual environment:
+```bash
+deactivate
+```
+```
+
 ## Author
 
 * Indranil - [indranilokg](https://github.com/indranilokg), Creator :tada:

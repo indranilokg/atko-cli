@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import configparser
+import importlib.util
 
 plugin_folder = os.path.join(os.path.dirname(__file__), 'commands')
 
@@ -20,16 +21,15 @@ class AtkoCLI(click.MultiCommand):
         return rv
 
     def get_command(self, ctx, name):
-        ns = {}
-        fn = os.path.join(plugin_folder, name + '.py')
         try:
-            with open(fn) as f:
-                code = compile(f.read(), fn, 'exec')
-                eval(code, ns, ns)
+            module_path = os.path.join(plugin_folder, name + '.py')
+            spec = importlib.util.spec_from_file_location(name, module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return module.cli
         except Exception as e:
-            raise RuntimeError(e)
-        else:
-            return ns['cli']
+            click.echo(f"Error loading command {name}: {str(e)}", err=True)
+            return None
 
     def __call__(self, *args, **kwargs):
         try:
@@ -54,7 +54,6 @@ class AtkoCLI(click.MultiCommand):
             click.echo(f"{ex.__class__}:{ex}")
             click.echo()
             sys.exit(112)
-            # raise
 
 
 @click.command(cls=AtkoCLI, context_settings=CONTEXT_SETTINGS)

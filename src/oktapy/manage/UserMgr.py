@@ -132,16 +132,14 @@ class UserMgr(OktaResourceBase):
 
     def __init__(self, client):
         """
-
         Instantiates an user manager object.
 
         Parameters
         ----------
         client : object
-            Okta client object to associate. Can be an instance of OktaAPIToken or OktaOAuth class.
+            Okta client object to associate. Instance of OktaAPIToken class.
             Sets the relative URL of Okta user API endpoint to `/api/v1/users`
         """
-
         super(UserMgr, self).__init__(client)
         self._url = '/api/v1/users'
 
@@ -243,8 +241,7 @@ class UserMgr(OktaResourceBase):
     def getCurrentUser(self, attr=None):
         """Returns the current user.
 
-         If the mode is `apitoken`, this method returns the owner of the API token.
-         Otherwise if the mode is `oauth`, it returns the user, the token is issued for.
+         This method returns the owner of the API token.
          The returned object is an instance of the `User` class.
         """
 

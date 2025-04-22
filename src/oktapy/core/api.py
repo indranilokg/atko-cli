@@ -24,6 +24,9 @@ class OktaRequest(object):
 
     delete(url, headers=None)
         Executes HTTP DELETE call to the supplied Okta endpoint and returns the reesponse.
+
+    put(url, data=None, headers=None)
+        Executes HTTP PUT call to the supplied Okta endpoint and returns the response.
     """
 
     def __init__(self):
@@ -72,6 +75,9 @@ class OktaRequest(object):
             elif mode == "post":
                 res = requests.post(url, data=data, headers=final_headers)
                 result = res.json()
+            elif mode == "put":
+                res = requests.put(url, data=data, headers=final_headers)
+                result = res.status_code  # PUT usually returns 204 No Content
             elif mode == "delete":
                 res = requests.delete(url, headers=final_headers)
                 result = res.status_code
@@ -157,3 +163,17 @@ class OktaRequest(object):
         """
 
         return self._httpcall(url=url, headers=headers, mode="delete")
+
+    def put(self, url, data=None, headers=None):
+        """Executes HTTP PUT call to the supplied Okta endpoint and returns the response.
+
+        Parameters
+        ----------
+        url : str
+            Okta API endpoint
+        data : object, optional
+            Payload data for the API endpoint (default is None).
+        headers : object, optional
+            HTTP header key-value pairs specific to the API endpoint (default is None).
+        """
+        return self._httpcall(url=url, headers=headers, data=data, mode="put")
