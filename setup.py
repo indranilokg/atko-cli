@@ -56,9 +56,6 @@ setup(
         'click>=7.0',
         'requests>=2.23.0',
         'pandas>=2.1.0',
-        'jwcrypto==0.8',
-        'py_jwt_verifier==0.7.1',
-        'pyjwt==1.7.1',
         'prettytable==1.0.1'
     ],
 )
